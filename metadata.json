@@ -1,0 +1,6 @@
+{
+  "name": "Dentika: Petualangan Gigi Sehat",
+  "description": "Game edukasi interaktif kesehatan gigi & mulut anak-anak lengkap dengan kuis, papan peringkat, reward, mode luring, dan dasbor kontrol orang tua.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
