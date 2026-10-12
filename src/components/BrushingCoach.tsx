@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { soundEffects, speakText, stopSpeech } from '../utils/audio';
+import {
+  BackButton3D,
+  PlayButton3D,
+  ToothHealthy3D,
+  Toothbrush3D,
+  Toothpaste3D,
+  DentalFloss3D,
+  Mouthwash3D,
+  Coin3D,
+  Star3D,
+  Trophy3D,
+} from './GameIcons';
 
 interface BrushingCoachProps {
   speechEnabled: boolean;
@@ -11,7 +23,7 @@ interface BrushingCoachProps {
 interface StepInfo {
   title: string;
   quadrant: string;
-  icon: string;
+  iconComponent: React.ReactNode;
   instruction: string;
   tip: string;
 }
@@ -32,28 +44,28 @@ export const BrushingCoach: React.FC<BrushingCoachProps> = ({
     {
       title: 'Bagian Depan',
       quadrant: 'Gigi Seri & Taring Depan',
-      icon: '😁',
+      iconComponent: <Toothbrush3D size={48} className="animate-bounce-gentle" />,
       instruction: 'Sikat dengan gerakan memutar bulat-bulat kecil seperti menggambar donat manis!',
       tip: 'Jangan tekan terlalu keras ya, pijat lembut gusi dan gigimu.',
     },
     {
       title: 'Geraham Belakang Kiri',
       quadrant: 'Gigi Pengunyah Kiri',
-      icon: '👈',
+      iconComponent: <ToothHealthy3D size={48} className="animate-pulse" />,
       instruction: 'Sikat permukaan atas tempat mengunyah dengan gerakan maju-mundur!',
       tip: 'Bersihkan sisa makanan yang sering terselip di cekungan gigi geraham.',
     },
     {
       title: 'Geraham Belakang Kanan',
       quadrant: 'Gigi Pengunyah Kanan',
-      icon: '👉',
+      iconComponent: <Toothpaste3D size={48} className="animate-bounce-gentle" />,
       instruction: 'Sekarang pindah ke sisi kanan! Sikat maju-mundur sampai berbusa lembut.',
       tip: 'Pastikan bulu sikat menjangkau gigi yang paling belakang.',
     },
     {
       title: 'Bagian Dalam & Lidah',
       quadrant: 'Dinding Dalam & Permukaan Lidah',
-      icon: '👅',
+      iconComponent: <Mouthwash3D size={48} className="animate-spin-slow" />,
       instruction: 'Cungkil kotoran dari dalam ke luar, lalu sikat lidah dengan lembut agar napas harum!',
       tip: 'Lidah yang bersih membuat napasmu segar dan bebas naga bau mulut.',
     },
@@ -128,38 +140,44 @@ export const BrushingCoach: React.FC<BrushingCoachProps> = ({
 
   if (isFinished) {
     return (
-      <div className="max-w-xl mx-auto bg-white rounded-3xl border-2 border-cyan-200 p-7 text-center shadow-lg space-y-6">
-        <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-cyan-400 to-teal-400 rounded-3xl flex items-center justify-center text-6xl shadow-lg shadow-cyan-300/40 animate-bounce-gentle">
-          ✨🦷
+      <div className="max-w-xl mx-auto bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-7 text-center shadow-lg space-y-6">
+        <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-[#21736A] via-[#29827D] to-[#6ED5B6] rounded-3xl flex items-center justify-center shadow-lg shadow-[#143D37]/25 animate-bounce-gentle">
+          <ToothHealthy3D size={64} />
         </div>
 
         <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-cyan-700 bg-cyan-100 px-3 py-1 rounded-full">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#21736A] bg-[#E2F8F1] px-3.5 py-1 rounded-full border border-[#6ED5B6]/50">
             Misi Berhasil!
           </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-800 font-['Fredoka']">
+          <h2 className="text-2xl sm:text-3xl font-black text-[#143D37] font-['Fredoka']">
             Gigimu Bersinar Sempurna! ⭐
           </h2>
-          <p className="text-sm text-slate-600 font-medium">
+          <p className="text-sm text-[#143D37]/80 font-medium">
             Hebat sekali! Kamu berhasil menyikat gigi selama 2 menit penuh. Kuman karies dan plak sudah kabur!
           </p>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-around max-w-sm mx-auto">
-          <div>
-            <div className="text-xs font-bold text-slate-500">Hadiah Disiplin</div>
-            <div className="text-2xl font-black text-emerald-600">+100 🪙</div>
+        <div className="bg-[#FAF2E8] border border-[#FEE8A2] p-4 rounded-2xl flex items-center justify-around max-w-sm mx-auto shadow-inner">
+          <div className="flex items-center gap-2">
+            <Coin3D size={28} />
+            <div className="text-left">
+              <div className="text-xs font-bold text-[#8F4619]">Hadiah Disiplin</div>
+              <div className="text-2xl font-black text-[#175851]">+100</div>
+            </div>
           </div>
-          <div>
-            <div className="text-xs font-bold text-slate-500">Bintang Senyum</div>
-            <div className="text-2xl font-black text-yellow-600">+2 ⭐</div>
+          <div className="flex items-center gap-2">
+            <Star3D size={28} />
+            <div className="text-left">
+              <div className="text-xs font-bold text-[#8F4619]">Bintang Senyum</div>
+              <div className="text-2xl font-black text-[#D97724]">+2</div>
+            </div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button
             onClick={handleReset}
-            className="w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-slate-700 bg-slate-100 hover:bg-slate-200 transition-transform active:scale-95"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-black text-[#143D37] bg-[#EFF6E9] hover:bg-[#E2F8F1] border-2 border-[#C4DCAC] transition-transform active:scale-95 cursor-pointer"
           >
             Ulangi Sikat Gigi
           </button>
@@ -168,7 +186,7 @@ export const BrushingCoach: React.FC<BrushingCoachProps> = ({
               soundEffects.tap();
               onBack();
             }}
-            className="w-full sm:w-auto px-8 py-3 rounded-2xl font-black text-white bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 shadow-md shadow-cyan-500/25 transition-transform active:scale-95"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-white bg-gradient-to-r from-[#21736A] via-[#29827D] to-[#143D37] hover:opacity-95 shadow-md shadow-[#143D37]/25 transition-transform active:scale-95 cursor-pointer"
           >
             Selesai & Kembali
           </button>
@@ -180,55 +198,56 @@ export const BrushingCoach: React.FC<BrushingCoachProps> = ({
   return (
     <div className="max-w-xl mx-auto space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 bg-white p-4 rounded-3xl border-2 border-cyan-100 shadow-sm">
+      <div className="flex items-center justify-between gap-3 bg-[#FAFDF9] p-4 rounded-3xl border-2 border-[#C4DCAC] shadow-sm">
         <button
           onClick={() => {
             soundEffects.tap();
             stopSpeech();
             onBack();
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-transform active:scale-95"
+          className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+          title="Kembali"
         >
-          <span>←</span>
-          <span>Kembali</span>
+          <BackButton3D size={42} />
         </button>
 
         <div className="text-center">
-          <h2 className="text-lg sm:text-xl font-black text-slate-800 font-['Fredoka']">
-            Simulator Sikat Gigi 2 Menit 🪥
+          <h2 className="text-lg sm:text-xl font-black text-[#143D37] font-['Fredoka'] flex items-center justify-center gap-2">
+            <Toothbrush3D size={26} />
+            <span>Simulator Sikat Gigi 2 Menit</span>
           </h2>
-          <div className="text-[11px] font-bold text-slate-500">
+          <div className="text-[11px] font-bold text-[#21736A]">
             Panduan ceria menyikat gigi sampai bersih
           </div>
         </div>
 
-        <div className="bg-cyan-50 text-cyan-800 font-black text-xs px-3 py-1.5 rounded-2xl border border-cyan-200">
-          Tahap {currentStepIndex + 1} / 4
+        <div className="bg-[#E2F8F1] text-[#143D37] font-black text-xs px-3.5 py-2 rounded-2xl border-2 border-[#6ED5B6] flex items-center gap-1 shadow-xs">
+          <span>Tahap {currentStepIndex + 1} / 4</span>
         </div>
       </div>
 
       {/* Main Timer Display & Guidance */}
-      <div className="bg-white rounded-3xl border-2 border-cyan-100 p-6 sm:p-8 shadow-sm space-y-6 text-center">
+      <div className="bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-6 sm:p-8 shadow-sm space-y-6 text-center">
         {/* Animated Quadrant Visual */}
-        <div className="relative w-44 h-44 mx-auto flex items-center justify-center">
+        <div className="relative w-48 h-48 mx-auto flex items-center justify-center">
           {/* Circular SVG Timer Ring */}
           <svg className="w-full h-full -rotate-90">
             <circle
-              cx="88"
-              cy="88"
-              r="76"
-              stroke="#E2E8F0"
+              cx="96"
+              cy="96"
+              r="82"
+              stroke="#EFF6E9"
               strokeWidth="12"
               fill="transparent"
             />
             <circle
-              cx="88"
-              cy="88"
-              r="76"
-              stroke="#06B6D4"
+              cx="96"
+              cy="96"
+              r="82"
+              stroke="#21736A"
               strokeWidth="12"
-              strokeDasharray={477}
-              strokeDashoffset={477 - (477 * progressPercent) / 100}
+              strokeDasharray={515}
+              strokeDashoffset={515 - (515 * progressPercent) / 100}
               strokeLinecap="round"
               fill="transparent"
               className="transition-all duration-1000 ease-linear"
@@ -237,32 +256,32 @@ export const BrushingCoach: React.FC<BrushingCoachProps> = ({
 
           {/* Central Time and Animated Icon */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-4xl ${isActive ? 'animate-bounce-gentle' : ''}`}>
-              {currentStep.icon}
-            </span>
-            <div className="text-3xl font-black text-slate-800 font-['Fredoka'] tracking-tight">
+            <div className="mb-1">
+              {currentStep.iconComponent}
+            </div>
+            <div className="text-3xl font-black text-[#143D37] font-['Fredoka'] tracking-tight">
               {formattedTime}
             </div>
-            <div className="text-[11px] font-extrabold text-cyan-600 uppercase">
+            <div className="text-[11px] font-extrabold text-[#21736A] uppercase">
               {progressPercent}% Bersih
             </div>
           </div>
         </div>
 
         {/* Step instruction card */}
-        <div className="p-4 rounded-3xl bg-cyan-50 border-2 border-cyan-200 text-left space-y-2">
+        <div className="p-4 rounded-3xl bg-[#E2F8F1] border-2 border-[#6ED5B6] text-left space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase text-cyan-800 tracking-wider">
+            <span className="text-xs font-black uppercase text-[#143D37] tracking-wider">
               {currentStep.title}: {currentStep.quadrant}
             </span>
-            <span className="text-xs font-bold bg-white text-cyan-700 px-2 py-0.5 rounded-full border border-cyan-200">
+            <span className="text-xs font-bold bg-[#FAFDF9] text-[#175851] px-2.5 py-0.5 rounded-full border border-[#6ED5B6]">
               30 Detik
             </span>
           </div>
-          <p className="text-sm font-bold text-slate-800 leading-snug">
+          <p className="text-sm font-bold text-[#143D37] leading-snug">
             {currentStep.instruction}
           </p>
-          <p className="text-xs text-slate-500 font-medium italic">
+          <p className="text-xs text-[#21736A] font-medium italic">
             💡 Tips: {currentStep.tip}
           </p>
         </div>
@@ -271,18 +290,19 @@ export const BrushingCoach: React.FC<BrushingCoachProps> = ({
         <div className="flex items-center justify-center gap-3 pt-2">
           <button
             onClick={toggleTimer}
-            className={`flex-1 py-4 rounded-2xl font-black text-base sm:text-lg text-white shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 ${
+            className={`flex-1 py-4 rounded-2xl font-black text-base sm:text-lg text-white shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer ${
               isActive
-                ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30'
-                : 'bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 shadow-cyan-500/30'
+                ? 'bg-[#D97724] hover:bg-[#BF7E43] shadow-[#D97724]/30'
+                : 'bg-gradient-to-r from-[#21736A] via-[#29827D] to-[#143D37] hover:opacity-95 shadow-[#143D37]/30'
             }`}
           >
-            <span>{isActive ? '⏸️ Jeda Sebentar' : '▶️ Mulai Sikat Gigi!'}</span>
+            <span>{isActive ? '⏸️ Jeda Sebentar' : 'Mulai Sikat Gigi!'}</span>
+            {!isActive && <PlayButton3D size={28} />}
           </button>
 
           <button
             onClick={handleReset}
-            className="p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold transition-all active:scale-95"
+            className="p-4 rounded-2xl bg-[#EFF6E9] hover:bg-[#E2F8F1] text-[#143D37] border-2 border-[#C4DCAC] font-bold transition-all active:scale-95 cursor-pointer text-xl"
             title="Ulangi dari awal"
           >
             🔄

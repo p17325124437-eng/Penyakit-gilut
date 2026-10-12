@@ -52,14 +52,30 @@ export interface FoodItem {
   badge: string;
 }
 
+export type AvatarCategory =
+  | 'skin'
+  | 'outfit'
+  | 'hand'
+  | 'hat'
+  | 'accessory'
+  | 'expression'
+  | 'profession'
+  | 'background'
+  | 'extra'
+  | 'glasses'
+  | 'cape'
+  | 'glow'
+  | 'tool';
+
 export interface RewardItem {
   id: string;
   name: string;
-  type: 'hat' | 'glasses' | 'cape' | 'glow' | 'tool';
+  type: AvatarCategory;
   icon: string;
   cost: number;
   unlocked: boolean;
   description: string;
+  tier?: 1 | 2 | 3 | 4 | 5;
 }
 
 export interface Badge {
@@ -73,18 +89,59 @@ export interface Badge {
   unlockedAt?: string;
 }
 
+export type ToothSkinMaterial = 'white' | 'gold' | 'black' | 'diamond';
+export type ToothExpression =
+  | 'senyum'
+  | 'tertawa'
+  | 'wink'
+  | 'bahagia'
+  | 'semangat'
+  | 'kaget'
+  | 'sedih'
+  | 'marah'
+  | 'malu'
+  | 'ngantuk'
+  | 'sayang'
+  | 'keren';
+
+export type BackgroundScene =
+  | 'kamar'
+  | 'klinik'
+  | 'lab'
+  | 'angkasa'
+  | 'pantai'
+  | 'kastil';
+
+export type AvatarBaseCharacter = 'chibi' | 'molar' | 'hero' | 'boba';
+
 export interface ChildProfile {
   name: string;
   avatar: string;
   score: number;
   coins: number;
   stars: number;
+  gems: number;
+  lives: number;
+  maxLives: number;
   streakDays: number;
   lastPlayedDate: string;
+
+  // Avatar Customization (from Gambar 3)
+  baseCharacter?: AvatarBaseCharacter;
+  skinMaterial: ToothSkinMaterial;
+  expression: ToothExpression;
+  tier: 1 | 2 | 3 | 4 | 5;
+  selectedOutfit?: string;
+  selectedHand?: string;
   selectedHat?: string;
+  selectedAccessory?: string;
   selectedGlasses?: string;
   selectedCape?: string;
   selectedGlow?: string;
+  selectedProfession?: string;
+  selectedBackground: BackgroundScene;
+  selectedExtra?: string;
+
   unlockedRewards: string[];
   badges: Badge[];
   completedQuizzes: number;
@@ -113,4 +170,31 @@ export interface DailyPlayTracker {
   secondsPlayedToday: number;
   brushingDoneMorning: boolean;
   brushingDoneNight: boolean;
+}
+
+export interface CommentReply {
+  id: string;
+  authorName: string;
+  authorRole: 'anak' | 'orang_tua' | 'dokter_gigi' | 'ai_dokter';
+  content: string;
+  createdAt: string;
+  likes: number;
+}
+
+export interface CommentItem {
+  id: string;
+  authorName: string;
+  authorRole: 'anak' | 'orang_tua' | 'dokter_gigi';
+  category: string;
+  categoryLabel: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  likes: number;
+  aiAnswer?: {
+    text: string;
+    answeredAt: string;
+    model: string;
+  };
+  replies: CommentReply[];
 }

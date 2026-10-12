@@ -20,6 +20,7 @@ import { RewardWardrobe } from './components/RewardWardrobe';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { ParentDashboard } from './components/ParentDashboard';
 import { ScreenTimeAlertModal } from './components/ScreenTimeAlertModal';
+import { CommunityForum } from './components/CommunityForum';
 import { soundEffects } from './utils/audio';
 
 export default function App() {
@@ -30,7 +31,7 @@ export default function App() {
 
   // App navigation state
   const [currentMode, setCurrentMode] = useState<
-    'home' | 'clinic' | 'quiz' | 'germ_game' | 'food_game' | 'brushing'
+    'home' | 'clinic' | 'quiz' | 'germ_game' | 'food_game' | 'brushing' | 'forum'
   >('home');
   const [showParentModal, setShowParentModal] = useState(false);
   const [showWardrobe, setShowWardrobe] = useState(false);
@@ -283,7 +284,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-sky-50 via-teal-50/40 to-emerald-50 text-slate-800">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#EFF6E9] via-[#FAFDF9] to-[#E2F8F1] text-[#143D37]">
       {/* Child-Friendly Top Header */}
       <HeaderNavBar
         profile={profile}
@@ -291,8 +292,10 @@ export default function App() {
         isOnline={isOnline}
         onOpenParent={() => setShowParentModal(true)}
         onOpenWardrobe={() => setShowWardrobe(true)}
+        onOpenLeaderboard={() => setShowLeaderboard(true)}
         onToggleSpeech={handleToggleSpeech}
         onNavigateHome={() => setCurrentMode('home')}
+        onSelectMode={mode => setCurrentMode(mode as any)}
         currentMode={currentMode}
       />
 
@@ -348,11 +351,19 @@ export default function App() {
             onBack={() => setCurrentMode('home')}
           />
         )}
+
+        {currentMode === 'forum' && (
+          <CommunityForum
+            profile={profile}
+            speechEnabled={settings.speechAudioEnabled}
+            onBack={() => setCurrentMode('home')}
+          />
+        )}
       </main>
 
       {/* Wardrobe Modal */}
       {showWardrobe && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-[#143D37]/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="max-w-4xl w-full my-auto">
             <RewardWardrobe
               profile={profile}
@@ -365,7 +376,7 @@ export default function App() {
 
       {/* Leaderboard Modal */}
       {showLeaderboard && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-[#143D37]/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div className="max-w-2xl w-full my-auto">
             <LeaderboardModal
               profile={profile}
@@ -400,7 +411,7 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-200/80 bg-white/70 py-4 text-center text-xs text-slate-500 font-medium">
+      <footer className="border-t border-[#C4DCAC] bg-[#FAFDF9]/90 py-4 text-center text-xs text-[#21736A] font-semibold">
         Dentika: Petualangan Gigi Sehat &copy; {new Date().getFullYear()} &bull; Game Edukasi Kesehatan Gigi & Mulut Ramah Anak
       </footer>
     </div>

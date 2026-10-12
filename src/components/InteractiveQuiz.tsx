@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { QuizQuestion } from '../types';
 import { QUIZ_QUESTIONS } from '../data/quizData';
 import { soundEffects, speakText, stopSpeech } from '../utils/audio';
+import { BackButton3D, CheckButton3D, Coin3D, Star3D, Trophy3D } from './GameIcons';
 
 interface QuizProps {
   speechEnabled: boolean;
@@ -16,7 +17,6 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
   onBack,
 }) => {
   const [questionList, setQuestionList] = useState<QuizQuestion[]>(() => {
-    // Shuffle questions
     return [...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 5);
   });
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,7 +62,7 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
     } else {
       soundEffects.wrong();
       if (speechEnabled) {
-        speakText('Hampir benar! Dengarkan penjelasannya ya.');
+        speakText('Kurang tepat! Yuk simak penjelasannya.');
       }
     }
   };
@@ -103,50 +103,51 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
 
   if (showSummary) {
     const accuracy = Math.round((correctCount / questionList.length) * 100);
-    const earnedCoins = (correctCount) * 30 + 50;
+    const earnedCoins = (correctCount + 1) * 30;
 
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-3xl border-2 border-amber-200 p-6 sm:p-8 text-center shadow-lg space-y-6">
-        <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-3xl flex items-center justify-center text-5xl shadow-lg shadow-amber-300/50 animate-bounce-gentle">
-          🏆
+      <div className="max-w-2xl mx-auto bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-7 text-center shadow-xl space-y-6">
+        <div className="w-24 h-24 mx-auto flex items-center justify-center animate-bounce-gentle">
+          <Trophy3D size={84} />
         </div>
 
         <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-100 px-3 py-1 rounded-full">
-            Kuis Selesai!
+          <span className="text-xs font-black uppercase tracking-wider text-[#21736A] bg-[#E2F8F1] px-3.5 py-1 rounded-full border border-[#6ED5B6]/50 inline-block">
+            Misi Kuis Selesai!
           </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-800 font-['Fredoka']">
-            {accuracy >= 80 ? 'Luar Biasa, Dokter Gigi Juara! 🌟' : 'Kerja Bagus, Terus Berlatih! 💪'}
+          <h2 className="text-2xl sm:text-4xl font-black text-[#143D37] font-['Fredoka']">
+            {accuracy >= 80 ? 'Pakar Gigi Bintang Lima! 🌟' : 'Terus Semangat Belajar! 💪'}
           </h2>
-          <p className="text-sm text-slate-600 font-medium">
+          <p className="text-sm text-[#143D37]/80 font-bold">
             Kamu telah menjawab {correctCount} dari {questionList.length} pertanyaan dengan benar ({accuracy}%).
           </p>
         </div>
 
+        {/* Currency Rewards Received */}
         <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
-          <div className="bg-amber-50 border border-amber-200 p-3 rounded-2xl">
-            <span className="text-2xl">🪙</span>
-            <div className="text-lg font-black text-amber-700">+{earnedCoins}</div>
-            <div className="text-[11px] font-bold text-amber-600">Koin Gigi</div>
+          <div className="bg-[#FAF2E8] border border-[#F5B842] p-3.5 rounded-2xl flex flex-col items-center">
+            <Coin3D size={28} />
+            <div className="text-lg font-black text-[#8F4619] mt-1">+{earnedCoins}</div>
+            <div className="text-[11px] font-extrabold text-[#8F4619]/80">Koin Gigi</div>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-2xl">
-            <span className="text-2xl">⭐</span>
-            <div className="text-lg font-black text-yellow-700">+{Math.ceil(correctCount / 2)}</div>
-            <div className="text-[11px] font-bold text-yellow-600">Bintang Senyum</div>
+          <div className="bg-[#FFFBE8] border border-[#FACC15] p-3.5 rounded-2xl flex flex-col items-center">
+            <Star3D size={28} />
+            <div className="text-lg font-black text-[#854D0E] mt-1">+{Math.ceil(correctCount / 2)}</div>
+            <div className="text-[11px] font-extrabold text-[#854D0E]/80">Bintang Senyum</div>
           </div>
 
-          <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
+          <div className="bg-[#E2F8F1] border border-[#6ED5B6] p-3.5 rounded-2xl flex flex-col items-center">
             <span className="text-2xl">🎯</span>
-            <div className="text-lg font-black text-emerald-700">+{totalScore}</div>
-            <div className="text-[11px] font-bold text-emerald-600">Skor Total</div>
+            <div className="text-lg font-black text-[#143D37] mt-1">+{totalScore}</div>
+            <div className="text-[11px] font-extrabold text-[#21736A]">Skor Total</div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
           <button
             onClick={handleRestart}
-            className="w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition-transform active:scale-95 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-white bg-gradient-to-r from-[#D97724] to-[#BF7E43] hover:opacity-95 shadow-md shadow-[#D97724]/25 transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>🔄</span>
             <span>Main Kuis Lagi</span>
@@ -157,7 +158,7 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
               soundEffects.tap();
               onBack();
             }}
-            className="w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-slate-700 bg-slate-100 hover:bg-slate-200 transition-transform active:scale-95 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-[#143D37] bg-[#EFF6E9] hover:bg-[#E2F8F1] border border-[#C4DCAC] transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>🏠</span>
             <span>Kembali ke Menu</span>
@@ -170,23 +171,23 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
   return (
     <div className="max-w-2xl mx-auto space-y-5">
       {/* Top quiz bar */}
-      <div className="flex items-center justify-between gap-3 bg-white p-4 rounded-3xl border-2 border-amber-100 shadow-sm">
+      <div className="flex items-center justify-between gap-3 bg-[#FAFDF9] p-4 rounded-3xl border-2 border-[#C4DCAC] shadow-sm">
         <button
           onClick={() => {
             soundEffects.tap();
             stopSpeech();
             onBack();
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-transform active:scale-95"
+          className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+          title="Keluar dari Kuis"
         >
-          <span>←</span>
-          <span>Keluar</span>
+          <BackButton3D size={40} />
         </button>
 
-        {/* Progress indicator */}
+        {/* Progress indicator (Gambar 4) */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-500">Soal</span>
-          <span className="text-sm font-black text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+          <span className="text-xs font-bold text-[#21736A]">Soal</span>
+          <span className="text-sm font-black text-[#143D37] bg-[#EFF6E9] border border-[#C4DCAC] px-3.5 py-1 rounded-full">
             {currentIndex + 1} / {questionList.length}
           </span>
         </div>
@@ -194,7 +195,7 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
         {/* Read question button */}
         <button
           onClick={handleReadQuestion}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-cyan-100 hover:bg-cyan-200 text-cyan-800 font-extrabold text-xs transition-transform active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#E2F8F1] hover:bg-[#CEF2E7] text-[#21736A] border border-[#6ED5B6] font-black text-xs transition-transform active:scale-95 cursor-pointer"
         >
           <span>🔊</span>
           <span>Bacakan</span>
@@ -202,19 +203,20 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
       </div>
 
       {/* Question Card */}
-      <div className="bg-white rounded-3xl border-2 border-amber-100 p-6 sm:p-7 shadow-sm space-y-6">
+      <div className="bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-6 sm:p-7 shadow-sm space-y-6">
         {/* Category tag */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-extrabold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
-            {currentQ.categoryLabel}
+          <span className="text-xs font-black uppercase tracking-wider text-[#143D37] bg-[#EFF6E9] border border-[#C4DCAC] px-3 py-1 rounded-full">
+            🍃 {currentQ.categoryLabel}
           </span>
-          <span className="text-xs font-bold text-slate-500">
-            +{currentQ.points} Poin
+          <span className="text-xs font-black text-[#8F4619] bg-[#FAF2E8] border border-[#F5B842] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <Star3D size={16} />
+            <span>+{currentQ.points} Poin</span>
           </span>
         </div>
 
         {/* Question Text */}
-        <h3 className="text-lg sm:text-2xl font-black text-slate-800 font-['Fredoka'] leading-snug">
+        <h3 className="text-lg sm:text-2xl font-black text-[#143D37] font-['Fredoka'] leading-snug">
           {currentQ.question}
         </h3>
 
@@ -222,18 +224,18 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
         <div className="grid grid-cols-1 gap-3">
           {currentQ.options.map(opt => {
             const isSelected = selectedOptionId === opt.id;
-            let btnStyle = 'border-slate-200 bg-slate-50 hover:bg-amber-50 hover:border-amber-300 text-slate-800';
+            let btnStyle = 'border-[#C4DCAC]/80 bg-[#EFF6E9]/60 hover:bg-[#EFF6E9] hover:border-[#21736A] text-[#143D37]';
 
             if (isAnswerSubmitted) {
               if (opt.isCorrect) {
-                btnStyle = 'border-emerald-500 bg-emerald-100 text-emerald-950 font-black ring-2 ring-emerald-400';
+                btnStyle = 'border-[#21736A] bg-[#E2F8F1] text-[#143D37] font-black ring-2 ring-[#6ED5B6]';
               } else if (isSelected && !opt.isCorrect) {
-                btnStyle = 'border-rose-400 bg-rose-100 text-rose-950 font-bold';
+                btnStyle = 'border-[#D95B43] bg-[#FDF0E9] text-[#B86230] font-bold';
               } else {
-                btnStyle = 'border-slate-200 bg-slate-50 opacity-60 text-slate-500';
+                btnStyle = 'border-[#C4DCAC]/40 bg-slate-50 opacity-60 text-slate-400';
               }
             } else if (isSelected) {
-              btnStyle = 'border-amber-500 bg-amber-100 text-amber-950 font-black ring-2 ring-amber-300';
+              btnStyle = 'border-[#D97724] bg-[#FAF2E8] text-[#143D37] font-black ring-2 ring-[#F5B842]';
             }
 
             return (
@@ -241,30 +243,37 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
                 key={opt.id}
                 onClick={() => handleSelectOption(opt.id)}
                 disabled={isAnswerSubmitted}
-                className={`w-full p-4 rounded-2xl border-2 text-left flex items-center gap-3.5 transition-all active:scale-98 ${btnStyle}`}
+                className={`w-full p-4 rounded-2xl border-2 text-left flex items-center gap-3.5 transition-all active:scale-98 cursor-pointer ${btnStyle}`}
               >
-                <span className="text-2xl sm:text-3xl shrink-0 p-2 bg-white rounded-xl shadow-2xs">
+                <span className="text-2xl sm:text-3xl shrink-0 p-2 bg-[#FAFDF9] rounded-xl shadow-2xs border border-black/5">
                   {opt.icon}
                 </span>
                 <span className="text-sm sm:text-base font-bold flex-1 leading-snug">
                   {opt.text}
                 </span>
                 {isAnswerSubmitted && opt.isCorrect && (
-                  <span className="text-xl text-emerald-600 font-black">✓ Benar!</span>
+                  <span className="text-xs sm:text-sm font-black bg-[#22C55E] text-white px-3 py-1 rounded-full shadow-xs">
+                    ✓ Benar!
+                  </span>
+                )}
+                {isAnswerSubmitted && isSelected && !opt.isCorrect && (
+                  <span className="text-xs sm:text-sm font-black bg-[#EF4444] text-white px-3 py-1 rounded-full shadow-xs">
+                    ✗ Kurang Tepat
+                  </span>
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Post-submit explanation */}
+        {/* Post-submit explanation with Gambar 4 notification style */}
         {isAnswerSubmitted && (
-          <div className="p-4 rounded-2xl bg-cyan-50 border border-cyan-200 text-cyan-950 space-y-1">
-            <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-cyan-800">
+          <div className="p-4 rounded-2xl bg-[#EFF6E9] border-2 border-[#6ED5B6] text-[#143D37] space-y-1">
+            <div className="flex items-center gap-1.5 font-black text-xs uppercase tracking-wider text-[#21736A]">
               <span>💡</span>
-              <span>Tahukah Kamu?</span>
+              <span>Pelajaran Dokter Cilik:</span>
             </div>
-            <p className="text-xs sm:text-sm font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm font-bold leading-relaxed">
               {currentQ.explanation}
             </p>
           </div>
@@ -276,19 +285,19 @@ export const InteractiveQuiz: React.FC<QuizProps> = ({
             <button
               onClick={handleSubmitAnswer}
               disabled={!selectedOptionId}
-              className={`w-full py-3.5 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-2 shadow-md ${
+              className={`w-full py-3.5 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer ${
                 selectedOptionId
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/30 active:scale-98'
+                  ? 'bg-gradient-to-r from-[#D97724] to-[#BF7E43] hover:opacity-95 text-white shadow-[#D97724]/30 active:scale-98'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
               <span>Periksa Jawaban</span>
-              <span>✨</span>
+              <CheckButton3D size={24} />
             </button>
           ) : (
             <button
               onClick={handleNextQuestion}
-              className="w-full py-3.5 rounded-2xl font-black text-base bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/30 transition-transform active:scale-98 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-2xl font-black text-base bg-gradient-to-r from-[#21736A] via-[#29827D] to-[#143D37] hover:opacity-95 text-white shadow-md shadow-[#143D37]/30 transition-transform active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{currentIndex + 1 < questionList.length ? 'Soal Berikutnya' : 'Lihat Hasil Kuis'}</span>
               <span>→</span>

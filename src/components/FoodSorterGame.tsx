@@ -3,6 +3,18 @@ import confetti from 'canvas-confetti';
 import { FoodItem } from '../types';
 import { FOOD_ITEMS } from '../data/foodData';
 import { soundEffects, speakText } from '../utils/audio';
+import {
+  BackButton3D,
+  ToothHealthy3D,
+  ToothCavity3D,
+  Apple3D,
+  Candy3D,
+  Milk3D,
+  WaterGlass3D,
+  Coin3D,
+  Star3D,
+  Trophy3D,
+} from './GameIcons';
 
 interface FoodSorterProps {
   speechEnabled: boolean;
@@ -78,31 +90,56 @@ export const FoodSorterGame: React.FC<FoodSorterProps> = ({
     }
   };
 
+  // Render 3D icon for special foods or fall back to emoji
+  const renderFoodGraphic = (food: FoodItem) => {
+    if (food.id === 'apple' || food.name.toLowerCase().includes('apel')) {
+      return <Apple3D size={84} className="animate-bounce-gentle" />;
+    }
+    if (food.id === 'candy' || food.name.toLowerCase().includes('permen') || food.name.toLowerCase().includes('cokelat')) {
+      return <Candy3D size={84} className="animate-bounce-gentle" />;
+    }
+    if (food.id === 'milk' || food.name.toLowerCase().includes('susu') || food.name.toLowerCase().includes('keju')) {
+      return <Milk3D size={84} className="animate-bounce-gentle" />;
+    }
+    if (food.id === 'water' || food.name.toLowerCase().includes('air')) {
+      return <WaterGlass3D size={84} className="animate-bounce-gentle" />;
+    }
+    return <span className="text-7xl sm:text-8xl animate-bounce-gentle">{food.icon}</span>;
+  };
+
   if (isFinished) {
     const coinsEarned = Math.floor(score / 3) + 50;
     return (
-      <div className="max-w-xl mx-auto bg-white rounded-3xl border-2 border-sky-200 p-7 text-center shadow-lg space-y-6">
-        <div className="text-6xl animate-bounce-gentle">🍎✨</div>
+      <div className="max-w-xl mx-auto bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-7 text-center shadow-lg space-y-6">
+        <div className="flex justify-center">
+          <Trophy3D size={80} className="animate-bounce-gentle" />
+        </div>
         <div className="space-y-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-sky-600 bg-sky-100 px-3 py-1 rounded-full">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#21736A] bg-[#E2F8F1] px-3.5 py-1 rounded-full border border-[#6ED5B6]/50">
             Tantangan Selesai!
           </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-800 font-['Fredoka']">
+          <h2 className="text-2xl sm:text-3xl font-black text-[#143D37] font-['Fredoka']">
             Pakar Nutrisi Gigi Juara! 🥗
           </h2>
-          <p className="text-sm text-slate-600 font-medium">
+          <p className="text-sm text-[#143D37]/80 font-medium">
             Kamu telah mengenal makanan sahabat gigi dan makanan perusak gigi dengan sangat hebat!
           </p>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-around max-w-sm mx-auto">
-          <div>
-            <div className="text-xs font-bold text-slate-500">Total Skor</div>
-            <div className="text-2xl font-black text-amber-700">{score}</div>
+        <div className="bg-[#FAF2E8] border border-[#FEE8A2] p-4 rounded-2xl flex items-center justify-around max-w-sm mx-auto shadow-inner">
+          <div className="flex items-center gap-2">
+            <Star3D size={28} />
+            <div className="text-left">
+              <div className="text-xs font-bold text-[#8F4619]">Total Skor</div>
+              <div className="text-2xl font-black text-[#8F4619]">{score}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-xs font-bold text-slate-500">Hadiah Koin</div>
-            <div className="text-2xl font-black text-emerald-600">+{coinsEarned} 🪙</div>
+          <div className="flex items-center gap-2">
+            <Coin3D size={28} />
+            <div className="text-left">
+              <div className="text-xs font-bold text-[#175851]">Hadiah Koin</div>
+              <div className="text-2xl font-black text-[#21736A]">+{coinsEarned}</div>
+            </div>
           </div>
         </div>
 
@@ -111,7 +148,7 @@ export const FoodSorterGame: React.FC<FoodSorterProps> = ({
             soundEffects.tap();
             onBack();
           }}
-          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-md shadow-sky-500/25 transition-transform active:scale-95"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-white bg-gradient-to-r from-[#21736A] via-[#29827D] to-[#143D37] hover:opacity-95 shadow-md shadow-[#143D37]/20 transition-transform active:scale-95 cursor-pointer"
         >
           Kembali ke Menu Utama
         </button>
@@ -122,46 +159,48 @@ export const FoodSorterGame: React.FC<FoodSorterProps> = ({
   return (
     <div className="max-w-2xl mx-auto space-y-5">
       {/* Header bar */}
-      <div className="flex items-center justify-between gap-3 bg-white p-4 rounded-3xl border-2 border-sky-100 shadow-sm">
+      <div className="flex items-center justify-between gap-3 bg-[#FAFDF9] p-4 rounded-3xl border-2 border-[#C4DCAC] shadow-sm">
         <button
           onClick={() => {
             soundEffects.tap();
             onBack();
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-transform active:scale-95"
+          className="hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+          title="Kembali"
         >
-          <span>←</span>
-          <span>Kembali</span>
+          <BackButton3D size={42} />
         </button>
 
         <div className="text-center">
-          <h2 className="text-lg sm:text-xl font-black text-slate-800 font-['Fredoka']">
-            Piring Sahabat Gigi 🍽️
+          <h2 className="text-lg sm:text-xl font-black text-[#143D37] font-['Fredoka'] flex items-center justify-center gap-2">
+            <Apple3D size={26} />
+            <span>Piring Sahabat Gigi</span>
+            <Candy3D size={26} />
           </h2>
-          <div className="text-[11px] font-bold text-slate-500">
+          <div className="text-[11px] font-bold text-[#21736A]">
             Makanan mana yang menguatkan gigi atau merusaknya?
           </div>
         </div>
 
-        <div className="bg-sky-50 text-sky-800 font-black text-xs px-3 py-1.5 rounded-2xl border border-sky-200">
-          {currentIndex + 1} / {foods.length}
+        <div className="bg-[#E2F8F1] text-[#143D37] font-black text-xs px-3.5 py-2 rounded-2xl border-2 border-[#6ED5B6] flex items-center gap-1.5 shadow-xs">
+          <span>{currentIndex + 1} / {foods.length}</span>
         </div>
       </div>
 
       {/* Main card */}
-      <div className="bg-white rounded-3xl border-2 border-sky-100 p-6 sm:p-8 shadow-sm space-y-6 text-center">
+      <div className="bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-6 sm:p-8 shadow-sm space-y-6 text-center">
         {/* Food Item display */}
         <div className="relative inline-block mx-auto">
-          <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-gradient-to-tr from-sky-100 via-indigo-50 to-pink-50 border-3 border-sky-200 shadow-inner flex items-center justify-center text-7xl sm:text-8xl animate-bounce-gentle">
-            {currentFood.icon}
+          <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-3xl bg-gradient-to-tr from-[#EFF6E9] via-[#E2F8F1] to-[#FAF2E8] border-3 border-[#AEC892] shadow-inner flex items-center justify-center">
+            {renderFoodGraphic(currentFood)}
           </div>
         </div>
 
         <div>
-          <h3 className="text-2xl sm:text-3xl font-black text-slate-800 font-['Fredoka']">
+          <h3 className="text-2xl sm:text-3xl font-black text-[#143D37] font-['Fredoka']">
             {currentFood.name}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
+          <p className="text-xs sm:text-sm text-[#143D37]/75 font-semibold mt-1">
             Apakah makanan ini baik untuk kesehatan gigimu?
           </p>
         </div>
@@ -171,26 +210,32 @@ export const FoodSorterGame: React.FC<FoodSorterProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <button
               onClick={() => handleClassify(true)}
-              className="p-5 rounded-3xl bg-emerald-50 hover:bg-emerald-100 border-3 border-emerald-300 hover:border-emerald-400 text-emerald-950 flex flex-col items-center gap-2 shadow-sm transition-all active:scale-95 group"
+              className="p-5 rounded-3xl bg-[#E2F8F1] hover:bg-[#A2E7D2]/40 border-3 border-[#6ED5B6] text-[#143D37] flex flex-col items-center gap-2 shadow-sm transition-all active:scale-95 group cursor-pointer"
             >
-              <span className="text-4xl group-hover:scale-110 transition-transform">🍏🦷</span>
-              <div className="font-black text-base sm:text-lg font-['Fredoka']">
+              <div className="flex items-center gap-2 group-hover:scale-110 transition-transform">
+                <Apple3D size={44} />
+                <ToothHealthy3D size={44} />
+              </div>
+              <div className="font-black text-base sm:text-lg font-['Fredoka'] text-[#143D37]">
                 Sahabat Gigi Kuat!
               </div>
-              <span className="text-[11px] font-bold text-emerald-700 bg-white/80 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-[#175851] bg-[#FAFDF9] px-2.5 py-0.5 rounded-full border border-[#6ED5B6]/60">
                 Membersihkan & Menguatkan
               </span>
             </button>
 
             <button
               onClick={() => handleClassify(false)}
-              className="p-5 rounded-3xl bg-rose-50 hover:bg-rose-100 border-3 border-rose-300 hover:border-rose-400 text-rose-950 flex flex-col items-center gap-2 shadow-sm transition-all active:scale-95 group"
+              className="p-5 rounded-3xl bg-[#FDF0E9] hover:bg-[#FBE4D6] border-3 border-[#D97724] text-[#143D37] flex flex-col items-center gap-2 shadow-sm transition-all active:scale-95 group cursor-pointer"
             >
-              <span className="text-4xl group-hover:scale-110 transition-transform">🍭👾</span>
-              <div className="font-black text-base sm:text-lg font-['Fredoka']">
+              <div className="flex items-center gap-2 group-hover:scale-110 transition-transform">
+                <Candy3D size={44} />
+                <ToothCavity3D size={44} />
+              </div>
+              <div className="font-black text-base sm:text-lg font-['Fredoka'] text-[#8F4619]">
                 Awas Gigi Berlubang!
               </div>
-              <span className="text-[11px] font-bold text-rose-700 bg-white/80 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-bold text-[#8F4619] bg-[#FAFDF9] px-2.5 py-0.5 rounded-full border border-[#D97724]/60">
                 Banyak Gula / Asam Perusak
               </span>
             </button>
@@ -201,15 +246,15 @@ export const FoodSorterGame: React.FC<FoodSorterProps> = ({
             <div
               className={`p-4 rounded-3xl border-2 text-left space-y-2 ${
                 feedback.isCorrect
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
-                  : 'bg-amber-50 border-amber-300 text-amber-950'
+                  ? 'bg-[#E2F8F1] border-[#6ED5B6] text-[#143D37]'
+                  : 'bg-[#FAF2E8] border-[#F5B842] text-[#8F4619]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-black text-sm sm:text-base flex items-center gap-1.5 font-['Fredoka']">
                   <span>{feedback.isCorrect ? '🎉 Benar Banget!' : '💡 Pelajaran Menarik:'}</span>
                 </span>
-                <span className="text-xs font-bold bg-white/90 px-2.5 py-0.5 rounded-full border border-slate-200">
+                <span className="text-xs font-bold bg-[#FAFDF9] px-2.5 py-0.5 rounded-full border border-[#AEC892]">
                   {feedback.badge}
                 </span>
               </div>
@@ -220,7 +265,7 @@ export const FoodSorterGame: React.FC<FoodSorterProps> = ({
 
             <button
               onClick={handleNextFood}
-              className="w-full py-3.5 rounded-2xl font-black text-base text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-md shadow-sky-500/30 transition-transform active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-2xl font-black text-base text-white bg-gradient-to-r from-[#21736A] via-[#29827D] to-[#143D37] hover:opacity-95 shadow-md shadow-[#143D37]/25 transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{currentIndex + 1 < foods.length ? 'Makanan Berikutnya' : 'Selesaikan Tantangan'}</span>
               <span>→</span>

@@ -72,28 +72,28 @@ export const LeaderboardModal: React.FC<LeaderboardProps> = ({ profile, onBack }
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 bg-white p-4 rounded-3xl border-2 border-purple-100 shadow-sm">
+      <div className="flex items-center justify-between gap-3 bg-[#FAFDF9] p-4 rounded-3xl border-2 border-[#C4DCAC] shadow-sm">
         <button
           onClick={() => {
             soundEffects.tap();
             onBack();
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition-transform active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#EFF6E9] hover:bg-[#E2F8F1] text-[#143D37] font-extrabold text-xs border border-[#C4DCAC] transition-transform active:scale-95 cursor-pointer"
         >
           <span>←</span>
           <span>Kembali</span>
         </button>
 
         <div className="text-center">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800 font-['Fredoka']">
+          <h2 className="text-xl sm:text-2xl font-black text-[#143D37] font-['Fredoka']">
             Papan Peringkat Bintang 🏆
           </h2>
-          <div className="text-xs text-slate-500 font-medium">
+          <div className="text-xs text-[#21736A] font-medium">
             Kompetisi sehat para pahlawan gigi se-Nusantara!
           </div>
         </div>
 
-        <div className="bg-purple-50 text-purple-700 font-black text-xs px-3 py-1.5 rounded-2xl border border-purple-200">
+        <div className="bg-[#E2F8F1] text-[#143D37] font-black text-xs px-3.5 py-1.5 rounded-2xl border border-[#6ED5B6]">
           Skormu: {profile.score}
         </div>
       </div>
@@ -102,31 +102,31 @@ export const LeaderboardModal: React.FC<LeaderboardProps> = ({ profile, onBack }
       <div className="grid grid-cols-3 gap-2 sm:gap-3 items-end pt-4 pb-2">
         {/* 2nd place */}
         {entries[1] && (
-          <div className="bg-white rounded-3xl border-2 border-slate-300 p-3 sm:p-4 text-center shadow-sm relative pt-6">
+          <div className="bg-[#FAFDF9] rounded-3xl border-2 border-[#AEC892] p-3 sm:p-4 text-center shadow-sm relative pt-6">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">🥈</span>
             <div className="text-2xl sm:text-3xl mb-1">🦷</div>
-            <div className="font-extrabold text-xs sm:text-sm text-slate-800 line-clamp-1">
+            <div className="font-extrabold text-xs sm:text-sm text-[#143D37] line-clamp-1">
               {entries[1].name}
             </div>
-            <div className="text-xs font-black text-amber-600 mt-1">
+            <div className="text-xs font-black text-[#D97724] mt-1">
               {entries[1].score} Poin
             </div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">Juara 2</span>
+            <span className="text-[10px] text-[#21736A] font-bold block mt-0.5">Juara 2</span>
           </div>
         )}
 
         {/* 1st place */}
         {entries[0] && (
-          <div className="bg-gradient-to-b from-amber-50 to-yellow-100 rounded-3xl border-3 border-amber-300 p-4 sm:p-5 text-center shadow-md relative pt-8 -translate-y-2">
+          <div className="bg-gradient-to-b from-[#FAF2E8] to-[#FEE8A2]/50 rounded-3xl border-3 border-[#F5B842] p-4 sm:p-5 text-center shadow-md relative pt-8 -translate-y-2">
             <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-3xl">👑</span>
             <div className="text-3xl sm:text-4xl mb-1">🦷✨</div>
-            <div className="font-black text-sm sm:text-base text-amber-950 line-clamp-1 font-['Fredoka']">
+            <div className="font-black text-sm sm:text-base text-[#8F4619] line-clamp-1 font-['Fredoka']">
               {entries[0].name}
             </div>
-            <div className="text-sm font-black text-amber-700 mt-1">
+            <div className="text-sm font-black text-[#8F4619] mt-1">
               {entries[0].score} Poin
             </div>
-            <span className="text-[11px] font-black text-amber-800 bg-amber-200/80 px-2 py-0.5 rounded-full inline-block mt-1">
+            <span className="text-[11px] font-black text-[#8F4619] bg-[#FAF2E8] border border-[#F5B842]/60 px-2.5 py-0.5 rounded-full inline-block mt-1">
               Juara Utama 🥇
             </span>
           </div>
@@ -134,22 +134,22 @@ export const LeaderboardModal: React.FC<LeaderboardProps> = ({ profile, onBack }
 
         {/* 3rd place */}
         {entries[2] && (
-          <div className="bg-white rounded-3xl border-2 border-amber-600/40 p-3 sm:p-4 text-center shadow-sm relative pt-6">
+          <div className="bg-[#FAFDF9] rounded-3xl border-2 border-[#D97724]/50 p-3 sm:p-4 text-center shadow-sm relative pt-6">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">🥉</span>
             <div className="text-2xl sm:text-3xl mb-1">🦷</div>
-            <div className="font-extrabold text-xs sm:text-sm text-slate-800 line-clamp-1">
+            <div className="font-extrabold text-xs sm:text-sm text-[#143D37] line-clamp-1">
               {entries[2].name}
             </div>
-            <div className="text-xs font-black text-amber-600 mt-1">
+            <div className="text-xs font-black text-[#D97724] mt-1">
               {entries[2].score} Poin
             </div>
-            <span className="text-[10px] text-slate-500 font-bold block mt-0.5">Juara 3</span>
+            <span className="text-[10px] text-[#B86230] font-bold block mt-0.5">Juara 3</span>
           </div>
         )}
       </div>
 
       {/* Full Leaderboard List */}
-      <div className="bg-white rounded-3xl border-2 border-slate-100 p-4 shadow-sm space-y-2">
+      <div className="bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-4 shadow-sm space-y-2">
         {entries.map((entry, idx) => {
           const isCurrentUser = entry.name === profile.name;
           return (
@@ -157,20 +157,20 @@ export const LeaderboardModal: React.FC<LeaderboardProps> = ({ profile, onBack }
               key={entry.id || idx}
               className={`p-3.5 rounded-2xl flex items-center justify-between gap-3 border transition-all ${
                 isCurrentUser
-                  ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300 shadow-xs'
-                  : 'bg-slate-50/70 border-slate-200 hover:bg-slate-50'
+                  ? 'bg-[#E2F8F1] border-[#21736A] ring-2 ring-[#6ED5B6] shadow-xs'
+                  : 'bg-white/80 border-[#C4DCAC]/60 hover:bg-[#EFF6E9]/50'
               }`}
             >
               <div className="flex items-center gap-3">
                 <span
                   className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs ${
                     idx === 0
-                      ? 'bg-amber-400 text-slate-900'
+                      ? 'bg-[#F5B842] text-[#8F4619]'
                       : idx === 1
-                      ? 'bg-slate-300 text-slate-800'
+                      ? 'bg-[#C4DCAC] text-[#143D37]'
                       : idx === 2
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-slate-200 text-slate-600'
+                      ? 'bg-[#D97724] text-white'
+                      : 'bg-[#EFF6E9] text-[#143D37]'
                   }`}
                 >
                   {idx + 1}
@@ -180,16 +180,16 @@ export const LeaderboardModal: React.FC<LeaderboardProps> = ({ profile, onBack }
 
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-black text-sm text-slate-800">
+                    <span className="font-black text-sm text-[#143D37]">
                       {entry.name}
                     </span>
                     {isCurrentUser && (
-                      <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.2 rounded-full">
+                      <span className="text-[10px] font-black bg-[#21736A] text-white px-2 py-0.5 rounded-full">
                         Kamu
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500 font-medium">
+                  <div className="text-xs text-[#21736A] font-medium">
                     {entry.level}
                   </div>
                 </div>
@@ -197,10 +197,10 @@ export const LeaderboardModal: React.FC<LeaderboardProps> = ({ profile, onBack }
 
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <div className="font-black text-sm text-amber-700">
+                  <div className="font-black text-sm text-[#8F4619]">
                     {entry.score} Poin
                   </div>
-                  <div className="text-[11px] font-bold text-yellow-600 flex items-center justify-end gap-1">
+                  <div className="text-[11px] font-bold text-[#D97724] flex items-center justify-end gap-1">
                     <span>⭐</span>
                     <span>{entry.stars}</span>
                   </div>

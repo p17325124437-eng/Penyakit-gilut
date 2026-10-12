@@ -27,8 +27,8 @@ export const ScreenTimeAlertModal: React.FC<ScreenTimeProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl border-2 border-emerald-200 p-6 sm:p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
+    <div className="fixed inset-0 bg-[#143D37]/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div className="bg-[#FAFDF9] rounded-3xl border-2 border-[#C4DCAC] p-6 sm:p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
         <div className="flex justify-center">
           <MouthToothMascot
             expression="thinking"
@@ -38,13 +38,13 @@ export const ScreenTimeAlertModal: React.FC<ScreenTimeProps> = ({
         </div>
 
         <div className="space-y-2">
-          <span className="text-xs font-black uppercase text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+          <span className="text-xs font-black uppercase text-[#8F4619] bg-[#FAF2E8] border border-[#FEE8A2] px-3.5 py-1 rounded-full">
             Waktunya Istirahat! 🛌
           </span>
-          <h2 className="text-2xl font-black text-slate-800 font-['Fredoka']">
+          <h2 className="text-2xl font-black text-[#143D37] font-['Fredoka']">
             Gigimu Butuh Tidur Nyenyak
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 font-medium">
+          <p className="text-xs sm:text-sm text-[#143D37]/75 font-medium">
             Hebat sekali! Kamu sudah belajar kesehatan gigi hari ini hingga batas waktu yang diatur orang tuamu. Yuk istirahat sejenak, regangkan tubuh, dan minum air putih segar!
           </p>
         </div>
@@ -53,7 +53,7 @@ export const ScreenTimeAlertModal: React.FC<ScreenTimeProps> = ({
           <div className="space-y-2 pt-2">
             <button
               onClick={() => setShowPinInput(true)}
-              className="text-xs font-bold text-slate-500 hover:text-slate-800 underline block mx-auto"
+              className="text-xs font-bold text-[#21736A] hover:text-[#143D37] underline block mx-auto cursor-pointer"
             >
               Orang Tua: Masukkan PIN untuk Menambah Waktu
             </button>
@@ -66,21 +66,21 @@ export const ScreenTimeAlertModal: React.FC<ScreenTimeProps> = ({
               placeholder="PIN Orang Tua (1234)"
               value={pin}
               onChange={e => setPin(e.target.value)}
-              className="w-full text-center py-2.5 px-4 rounded-xl border border-slate-300 font-bold text-base"
+              className="w-full text-center py-2.5 px-4 rounded-xl border-2 border-[#C4DCAC] focus:border-[#21736A] focus:outline-hidden font-bold text-base bg-white text-[#143D37]"
               autoFocus
             />
-            {error && <p className="text-xs text-rose-600 font-bold">PIN salah.</p>}
+            {error && <p className="text-xs text-[#D95B43] font-bold">PIN salah.</p>}
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowPinInput(false)}
-                className="flex-1 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold"
+                className="flex-1 py-2.5 rounded-xl bg-[#EFF6E9] hover:bg-[#E2F8F1] text-[#143D37] border border-[#C4DCAC] text-xs font-bold cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="flex-1 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#21736A] to-[#143D37] text-white text-xs font-bold shadow-md shadow-[#143D37]/25 cursor-pointer"
               >
                 Buka Kunci
               </button>
