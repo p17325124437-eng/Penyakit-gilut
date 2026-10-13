@@ -333,6 +333,7 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
             >
               <div className="w-16 h-16 mx-auto flex items-center justify-center">
                 <MouthToothMascot
+                  baseCharacter={profile.baseCharacter || 'chibi'}
                   skinMaterial={profile.skinMaterial}
                   expression={profile.expression}
                   outfit={profile.selectedOutfit}
