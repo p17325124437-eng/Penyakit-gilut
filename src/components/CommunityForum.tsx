@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { ChildProfile, CommentItem } from '../types';
 import { soundEffects, speakText, stopSpeech } from '../utils/audio';
 import { BackButton3D, ToothHealthy3D, Star3D, Shield3D } from './GameIcons';
+import { db, collection, onSnapshot } from '../lib/firebase';
 
 interface CommunityForumProps {
   profile: ChildProfile;
@@ -19,6 +20,7 @@ export const CommunityForum: React.FC<CommunityForumProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [firebaseConnected, setFirebaseConnected] = useState<boolean>(true);
 
   // New Comment Form State
   const [showNewCommentForm, setShowNewCommentForm] = useState<boolean>(false);
@@ -73,6 +75,7 @@ export const CommunityForum: React.FC<CommunityForumProps> = ({
       const data = await res.json();
       if (data && data.comments) {
         setComments(data.comments);
+        if (data.cloudSynced) setFirebaseConnected(true);
       }
     } catch (err) {
       console.warn('Failed to fetch from server, fallback to local state', err);
@@ -82,8 +85,40 @@ export const CommunityForum: React.FC<CommunityForumProps> = ({
   };
 
   useEffect(() => {
-    fetchComments();
+    let unsubscribeFirestore: (() => void) | null = null;
+    try {
+      const commentsCol = collection(db, 'comments');
+      unsubscribeFirestore = onSnapshot(
+        commentsCol,
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const cloudList: CommentItem[] = [];
+            snapshot.forEach((docSnap) => {
+              cloudList.push(docSnap.data() as CommentItem);
+            });
+            cloudList.sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+            setComments(cloudList);
+            setLoading(false);
+            setFirebaseConnected(true);
+          } else {
+            fetchComments();
+          }
+        },
+        (error) => {
+          console.warn('Firestore live listener notice, falling back to server API:', error);
+          fetchComments();
+        }
+      );
+    } catch (err) {
+      console.warn('Firestore subscription exception:', err);
+      fetchComments();
+    }
+
     return () => {
+      if (unsubscribeFirestore) unsubscribeFirestore();
       stopSpeech();
     };
   }, []);
@@ -279,10 +314,16 @@ export const CommunityForum: React.FC<CommunityForumProps> = ({
             <BackButton3D size={42} />
           </button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xl sm:text-2xl font-black font-['Fredoka'] tracking-wide">
                 KOLOM KOMENTAR & TANYA AI 💬✨
               </span>
+              {firebaseConnected && (
+                <span className="text-[10px] sm:text-xs bg-emerald-500/25 text-emerald-200 border border-emerald-400/50 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Cloud Firebase Terhubung ☁️
+                </span>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-[#A2E7D2] font-extrabold">
               Bisa Diakses Semua Orang • Diskusi Sehat • Jawaban Edukasi Dokter Denti AI

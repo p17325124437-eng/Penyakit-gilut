@@ -1,0 +1,248 @@
+{
+  "entities": {
+    "Comment": {
+      "title": "Comment",
+      "description": "Public discussion and dental health questions from players and parents",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the comment",
+          "maxLength": 128
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of the author",
+          "maxLength": 100
+        },
+        "authorRole": {
+          "type": "string",
+          "description": "Role of the author",
+          "enum": ["anak", "orang_tua", "dokter_gigi"]
+        },
+        "category": {
+          "type": "string",
+          "description": "Topic category slug",
+          "maxLength": 50
+        },
+        "categoryLabel": {
+          "type": "string",
+          "description": "Readable topic category label",
+          "maxLength": 100
+        },
+        "title": {
+          "type": "string",
+          "description": "Question or discussion title",
+          "maxLength": 200
+        },
+        "content": {
+          "type": "string",
+          "description": "Detailed text of the comment or question",
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation"
+        },
+        "likes": {
+          "type": "number",
+          "description": "Count of positive reactions"
+        },
+        "aiAnswer": {
+          "type": "object",
+          "description": "AI Doctor response with medical guidance"
+        },
+        "replies": {
+          "type": "array",
+          "description": "Threaded replies from community or dental professionals"
+        }
+      },
+      "required": ["id", "authorName", "content", "createdAt"]
+    },
+    "SyncProfile": {
+      "title": "SyncProfile",
+      "description": "Cloud synchronized player progress and customized avatar state",
+      "type": "object",
+      "properties": {
+        "syncCode": {
+          "type": "string",
+          "description": "Alphanumeric synchronization code",
+          "maxLength": 32
+        },
+        "playerName": {
+          "type": "string",
+          "description": "Player in-game name",
+          "maxLength": 100
+        },
+        "score": {
+          "type": "number",
+          "description": "Total dental score points"
+        },
+        "stars": {
+          "type": "number",
+          "description": "Total stars collected across quizzes and hygiene games"
+        },
+        "progressData": {
+          "type": "object",
+          "description": "Full player save state including unlocked items and avatar configuration"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last cloud synchronization"
+        }
+      },
+      "required": ["syncCode", "updatedAt"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "High score leaderboard entry for smiling hero champions",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier or sync code",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "description": "Player name displayed on leaderboard",
+          "maxLength": 100
+        },
+        "score": {
+          "type": "number",
+          "description": "Leaderboard score"
+        },
+        "stars": {
+          "type": "number",
+          "description": "Stars count"
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Avatar badge or character model",
+          "maxLength": 50
+        },
+        "level": {
+          "type": "string",
+          "description": "Rank title or badge label",
+          "maxLength": 100
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of update"
+        }
+      },
+      "required": ["id", "name", "score"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered user account with Google authentication, dual roles, age, gender, and learning progress",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 200 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "primaryRole": { "type": "string", "enum": ["orang_tua", "anak", "super_admin", "dokter_gigi", "terapis_gigi"] },
+        "activeRole": { "type": "string", "enum": ["orang_tua", "anak", "super_admin", "dokter_gigi", "terapis_gigi"] },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["Laki-laki", "Perempuan"] },
+        "childAge": { "type": "number" },
+        "childGender": { "type": "string", "enum": ["Laki-laki", "Perempuan"] },
+        "createdAt": { "type": "string" },
+        "lastLoginAt": { "type": "string" },
+        "levelProgress": { "type": "object" }
+      },
+      "required": ["uid", "email", "primaryRole"]
+    },
+    "StaffRole": {
+      "title": "StaffRole",
+      "description": "Authorized staff credentials managed exclusively by super admin",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 200 },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["super_admin", "dokter_gigi", "terapis_gigi"] },
+        "addedBy": { "type": "string", "maxLength": 200 },
+        "addedAt": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["email", "role"]
+    },
+    "CurriculumLevel": {
+      "title": "CurriculumLevel",
+      "description": "Sequential educational curriculum levels and locked quizzes",
+      "type": "object",
+      "properties": {
+        "levelNumber": { "type": "number" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "icon": { "type": "string" },
+        "modules": { "type": "array" },
+        "quizQuestions": { "type": "array" }
+      },
+      "required": ["levelNumber", "title"]
+    },
+    "AppCustomization": {
+      "title": "AppCustomization",
+      "description": "Visual layout, theme colors, icons and card arrangements editable by super admin",
+      "type": "object",
+      "properties": {
+        "themePrimaryColor": { "type": "string" },
+        "themeSecondaryColor": { "type": "string" },
+        "themeAccentColor": { "type": "string" },
+        "customIcons": { "type": "object" },
+        "modulesOrder": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "ClinicalNote": {
+      "title": "ClinicalNote",
+      "description": "Clinical assessment and expert recommendations from dentists and therapists",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorEmail": { "type": "string" },
+        "authorRole": { "type": "string" },
+        "authorName": { "type": "string" },
+        "targetChildId": { "type": "string" },
+        "note": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "authorEmail", "note"]
+    }
+  },
+  "firestore": {
+    "/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Public community discussion and dental knowledge questions"
+    },
+    "/sync_profiles/{syncCode}": {
+      "schema": "SyncProfile",
+      "description": "Cloud backup of player game progress and avatar customization"
+    },
+    "/leaderboard/{entryId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Global leaderboard rankings for healthy smile champions"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles with Google Gmail accounts, age, gender, and progress"
+    },
+    "/staff_roles/{emailDoc}": {
+      "schema": "StaffRole",
+      "description": "Clinical staff roles (dentists & therapists) managed by super admin"
+    },
+    "/curriculum_levels/{levelId}": {
+      "schema": "CurriculumLevel",
+      "description": "Sequential learning levels and locked quizzes"
+    },
+    "/app_customization/{configId}": {
+      "schema": "AppCustomization",
+      "description": "Super admin visual custom colors, icons, and layout reordering"
+    },
+    "/clinical_notes/{noteId}": {
+      "schema": "ClinicalNote",
+      "description": "Individual and general clinical recommendations from dentists and dental therapists"
+    }
+  }
+}

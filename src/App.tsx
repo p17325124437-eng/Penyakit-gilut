@@ -1,5 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ChildProfile, ParentSettings, DailyPlayTracker, DentalDiseaseId } from './types';
+import React, { useState, useEffect } from 'react';
+import {
+  ChildProfile,
+  ParentSettings,
+  DailyPlayTracker,
+  DentalDiseaseId,
+  AppUserProfile,
+  RiskWarningData,
+  AppCustomizationConfig,
+} from './types';
 import {
   loadProfileFromStorage,
   saveProfileToStorage,
@@ -9,6 +17,16 @@ import {
   saveDailyTracker,
   getTodayDateString,
 } from './utils/syncManager';
+import { DEFAULT_APP_CUSTOMIZATION } from './data/appCustomization';
+import {
+  auth,
+  onAuthStateChanged,
+  db,
+  doc,
+  getDoc,
+  setDoc,
+  SUPER_ADMIN_EMAIL,
+} from './lib/firebase';
 import { HeaderNavBar } from './components/HeaderNavBar';
 import { ModeSelector } from './components/ModeSelector';
 import { DiseaseExplorer } from './components/DiseaseExplorer';
@@ -19,9 +37,16 @@ import { BrushingCoach } from './components/BrushingCoach';
 import { RewardWardrobe } from './components/RewardWardrobe';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { ParentDashboard } from './components/ParentDashboard';
-import { ScreenTimeAlertModal } from './components/ScreenTimeAlertModal';
 import { CommunityForum } from './components/CommunityForum';
+import { AuthModal } from './components/AuthModal';
+import { SuperAdminPanel } from './components/SuperAdminPanel';
+import { ClinicalAnalysisDashboard } from './components/ClinicalAnalysisDashboard';
+import { SequentialLearningCenter } from './components/SequentialLearningCenter';
+import { RiskWarningModal } from './components/RiskWarningModal';
 import { soundEffects } from './utils/audio';
+
+const STORAGE_USER_KEY = 'dentika_auth_profile_v1';
+const STORAGE_CUSTOMIZATION_KEY = 'dentika_app_customization_v1';
 
 export default function App() {
   const [profile, setProfile] = useState<ChildProfile>(loadProfileFromStorage);
@@ -29,14 +54,41 @@ export default function App() {
   const [dailyTracker, setDailyTracker] = useState<DailyPlayTracker>(loadDailyTracker);
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
-  // App navigation state
+  // User Authentication & Role State
+  const [currentUser, setCurrentUser] = useState<AppUserProfile | null>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_USER_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {
+      // fallback
+    }
+    return null;
+  });
+
+  // App Layout & Color Customization
+  const [appConfig, setAppConfig] = useState<AppCustomizationConfig>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_CUSTOMIZATION_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {
+      // fallback
+    }
+    return DEFAULT_APP_CUSTOMIZATION;
+  });
+
+  // App Navigation & Modals
   const [currentMode, setCurrentMode] = useState<
-    'home' | 'clinic' | 'quiz' | 'germ_game' | 'food_game' | 'brushing' | 'forum'
+    'home' | 'clinic' | 'quiz' | 'germ_game' | 'food_game' | 'brushing' | 'forum' | 'sequential_levels'
   >('home');
   const [showParentModal, setShowParentModal] = useState(false);
   const [showWardrobe, setShowWardrobe] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [isScreenTimeLocked, setIsScreenTimeLocked] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showClinicalModal, setShowClinicalModal] = useState(false);
+
+  // Risk Warning Notification State
+  const [riskWarningModal, setRiskWarningModal] = useState<RiskWarningData | null>(null);
 
   // Track online/offline status
   useEffect(() => {
@@ -49,6 +101,79 @@ export default function App() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+  }, []);
+
+  // Sync Firebase Auth State
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      if (fbUser) {
+        const isSuperAdmin = fbUser.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+        try {
+          const userRef = doc(db, 'users', fbUser.uid);
+          const snap = await getDoc(userRef);
+
+          if (snap.exists()) {
+            const data = snap.data() as AppUserProfile;
+            const finalRole = isSuperAdmin ? 'super_admin' : data.primaryRole;
+            const updatedUser: AppUserProfile = {
+              ...data,
+              uid: fbUser.uid,
+              email: fbUser.email || data.email,
+              displayName: fbUser.displayName || data.displayName,
+              photoURL: fbUser.photoURL || data.photoURL,
+              primaryRole: finalRole,
+              activeRole: isSuperAdmin ? 'super_admin' : (data.activeRole || data.primaryRole),
+            };
+            setCurrentUser(updatedUser);
+            localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(updatedUser));
+          } else {
+            // New user registration record
+            const newUser: AppUserProfile = {
+              uid: fbUser.uid,
+              email: fbUser.email || '',
+              displayName: fbUser.displayName || 'Sahabat Dentika',
+              photoURL: fbUser.photoURL || undefined,
+              primaryRole: isSuperAdmin ? 'super_admin' : 'anak',
+              activeRole: isSuperAdmin ? 'super_admin' : 'anak',
+              hasParentRole: isSuperAdmin,
+              hasChildRole: true,
+              age: isSuperAdmin ? 30 : 8,
+              gender: 'Laki-laki',
+              createdAt: new Date().toISOString(),
+              lastLoginAt: new Date().toISOString(),
+              currentLevel: 1,
+              completedModuleIds: [],
+              completedLevelIds: [],
+              quizScores: {},
+            };
+            await setDoc(userRef, newUser);
+            setCurrentUser(newUser);
+            localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(newUser));
+          }
+        } catch (e) {
+          console.warn('Error fetching user profile from Firestore:', e);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Load Customization Config from Firestore
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'app_customization', 'main_layout'));
+        if (snap.exists()) {
+          const cfg = snap.data() as AppCustomizationConfig;
+          setAppConfig(cfg);
+          localStorage.setItem(STORAGE_CUSTOMIZATION_KEY, JSON.stringify(cfg));
+        }
+      } catch (e) {
+        console.warn('Notice loading app config:', e);
+      }
+    };
+    loadConfig();
   }, []);
 
   // Check and update streak on load
@@ -76,29 +201,46 @@ export default function App() {
     }
   }, []);
 
-  // Screen time tracking timer (every second)
+  // Daily play tracking (Requirement 7: time restriction lock completely removed)
   useEffect(() => {
     const interval = setInterval(() => {
       setDailyTracker(prev => {
         const nextSeconds = prev.secondsPlayedToday + 1;
         const updated = { ...prev, secondsPlayedToday: nextSeconds };
         saveDailyTracker(updated);
-
-        // Check screen time limit
-        if (
-          settings.dailyTimeLimitMinutes > 0 &&
-          nextSeconds >= settings.dailyTimeLimitMinutes * 60 &&
-          !isScreenTimeLocked
-        ) {
-          setIsScreenTimeLocked(true);
-        }
-
         return updated;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [settings.dailyTimeLimitMinutes, isScreenTimeLocked]);
+  }, []);
+
+  // Handle User Change from Auth Modal
+  const handleUserChange = (user: AppUserProfile | null) => {
+    setCurrentUser(user);
+    if (user) {
+      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+      // Sync child name to child profile if set
+      if (user.childName && user.childName !== profile.name) {
+        const updated = { ...profile, name: user.childName };
+        setProfile(updated);
+        saveProfileToStorage(updated);
+      }
+    } else {
+      localStorage.removeItem(STORAGE_USER_KEY);
+    }
+  };
+
+  // Handle Update App Customization Config
+  const handleUpdateAppConfig = async (newConfig: AppCustomizationConfig) => {
+    setAppConfig(newConfig);
+    localStorage.setItem(STORAGE_CUSTOMIZATION_KEY, JSON.stringify(newConfig));
+    try {
+      await setDoc(doc(db, 'app_customization', 'main_layout'), newConfig);
+    } catch (e) {
+      console.warn('Notice saving app config to Firestore:', e);
+    }
+  };
 
   // Handle Quiz Completion
   const handleQuizComplete = (results: {
@@ -284,15 +426,25 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#EFF6E9] via-[#FAFDF9] to-[#E2F8F1] text-[#143D37]">
-      {/* Child-Friendly Top Header */}
+    <div
+      style={{
+        backgroundColor: appConfig.themeBgColor || '#FAFDF9',
+        color: appConfig.themeSecondaryColor || '#143D37',
+      }}
+      className="min-h-screen flex flex-col font-sans transition-colors duration-300"
+    >
+      {/* Top Header Navigation Bar */}
       <HeaderNavBar
         profile={profile}
         settings={settings}
+        currentUser={currentUser}
         isOnline={isOnline}
         onOpenParent={() => setShowParentModal(true)}
         onOpenWardrobe={() => setShowWardrobe(true)}
         onOpenLeaderboard={() => setShowLeaderboard(true)}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onOpenAdmin={() => setShowAdminModal(true)}
+        onOpenClinical={() => setShowClinicalModal(true)}
         onToggleSpeech={handleToggleSpeech}
         onNavigateHome={() => setCurrentMode('home')}
         onSelectMode={mode => setCurrentMode(mode as any)}
@@ -304,10 +456,25 @@ export default function App() {
         {currentMode === 'home' && (
           <ModeSelector
             profile={profile}
+            currentUser={currentUser}
+            appConfig={appConfig}
             speechEnabled={settings.speechAudioEnabled}
             onSelectMode={mode => setCurrentMode(mode as any)}
             onOpenWardrobe={() => setShowWardrobe(true)}
             onOpenLeaderboard={() => setShowLeaderboard(true)}
+            onOpenAdmin={() => setShowAdminModal(true)}
+            onOpenClinical={() => setShowClinicalModal(true)}
+          />
+        )}
+
+        {currentMode === 'sequential_levels' && (
+          <SequentialLearningCenter
+            profile={profile}
+            currentUser={currentUser}
+            speechEnabled={settings.speechAudioEnabled}
+            onProfileUpdate={setProfile}
+            onUserUpdate={handleUserChange}
+            onBack={() => setCurrentMode('home')}
           />
         )}
 
@@ -399,20 +566,54 @@ export default function App() {
         />
       )}
 
-      {/* Screen Time Lockout Modal */}
-      {isScreenTimeLocked && (
-        <ScreenTimeAlertModal
-          onParentUnlock={enteredPin => enteredPin === settings.pin || enteredPin === '1234'}
-          onExtend={() => {
-            setIsScreenTimeLocked(false);
-            setDailyTracker(prev => ({ ...prev, secondsPlayedToday: 0 }));
-          }}
+      {/* Auth / Gmail Login Modal */}
+      {showAuthModal && (
+        <AuthModal
+          currentUser={currentUser}
+          onUserChange={handleUserChange}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
+
+      {/* Super Admin Control Panel Modal */}
+      {showAdminModal && currentUser && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="max-w-5xl w-full my-auto">
+            <SuperAdminPanel
+              currentUser={currentUser}
+              appConfig={appConfig}
+              onUpdateAppConfig={handleUpdateAppConfig}
+              onRequestRiskWarning={setRiskWarningModal}
+              onBack={() => setShowAdminModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Clinical Analysis Dashboard Modal */}
+      {showClinicalModal && currentUser && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="max-w-5xl w-full my-auto">
+            <ClinicalAnalysisDashboard
+              currentUser={currentUser}
+              onRequestRiskWarning={setRiskWarningModal}
+              onBack={() => setShowClinicalModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Risk Warning Notification Modal with Risk Explanations */}
+      {riskWarningModal && (
+        <RiskWarningModal
+          data={riskWarningModal}
+          onClose={() => setRiskWarningModal(null)}
         />
       )}
 
       {/* Footer */}
       <footer className="border-t border-[#C4DCAC] bg-[#FAFDF9]/90 py-4 text-center text-xs text-[#21736A] font-semibold">
-        Dentika: Petualangan Gigi Sehat &copy; {new Date().getFullYear()} &bull; Game Edukasi Kesehatan Gigi & Mulut Ramah Anak
+        {appConfig.appTitle || 'Dentika'}: {appConfig.appSubtitle || 'Petualangan Gigi Sehat'} &copy; {new Date().getFullYear()} &bull; Game Edukasi Kesehatan Gigi & Mulut Ramah Anak
       </footer>
     </div>
   );

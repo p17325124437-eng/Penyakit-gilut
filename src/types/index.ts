@@ -198,3 +198,160 @@ export interface CommentItem {
   };
   replies: CommentReply[];
 }
+
+// ---------------------------------------------------------------------
+// 1. RBAC & USER PROFILE MODELS
+// ---------------------------------------------------------------------
+export type UserRole = 'super_admin' | 'dokter_gigi' | 'terapis_gigi' | 'orang_tua' | 'anak';
+
+export type UserGender = 'Laki-laki' | 'Perempuan';
+
+export interface AppUserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  primaryRole: UserRole;
+  activeRole: UserRole;
+  // Dual-role capability
+  hasParentRole: boolean;
+  hasChildRole: boolean;
+  // Demographic data required during registration
+  age: number;
+  gender: UserGender;
+  childName?: string;
+  childAge?: number;
+  childGender?: UserGender;
+  // Timestamps & Sync
+  createdAt: string;
+  lastLoginAt: string;
+  // Sequential Level Progress
+  currentLevel: number;
+  completedModuleIds: string[];
+  completedLevelIds: number[];
+  quizScores: Record<number, { score: number; passed: boolean; attempts: number; completedAt: string }>;
+}
+
+export interface StaffAccount {
+  email: string;
+  name: string;
+  role: 'dokter_gigi' | 'terapis_gigi';
+  specialty?: string;
+  addedBy: string;
+  addedAt: string;
+  active: boolean;
+}
+
+// ---------------------------------------------------------------------
+// 2. SEQUENTIAL LEARNING & GAMIFICATION MODELS
+// ---------------------------------------------------------------------
+export interface EducationalModule {
+  id: string;
+  levelNumber: number;
+  order: number; // 1, 2, 3...
+  title: string;
+  childTitle: string;
+  summary: string;
+  content: string[];
+  keyTakeaway: string;
+  actionTip: string;
+  icon: string;
+  badgeUnlockedTitle?: string;
+  diseaseRef?: DentalDiseaseId;
+}
+
+export interface SequentialLevel {
+  levelNumber: number;
+  title: string;
+  rankTitle: string;
+  subtitle: string;
+  icon: string;
+  color: string;
+  bgGradient: string;
+  requiredExp: number;
+  rewardCoins: number;
+  rewardStars: number;
+  modules: EducationalModule[];
+  quizQuestions: QuizQuestion[];
+}
+
+// ---------------------------------------------------------------------
+// 3. SUPER ADMIN LAYOUT & VISUAL CUSTOMIZATION
+// ---------------------------------------------------------------------
+export interface LayoutCardConfig {
+  id: string;
+  label: string;
+  sublabel: string;
+  icon: string; // emoji or custom SVG/image URL
+  color: string;
+  visible: boolean;
+  order: number;
+}
+
+export interface AppCustomizationConfig {
+  appTitle: string;
+  appSubtitle: string;
+  themePrimaryColor: string; // e.g., #21736A
+  themeSecondaryColor: string; // e.g., #143D37
+  themeAccentColor: string; // e.g., #22C55E
+  themeBgColor: string; // e.g., #F0FDF4
+  bannerTagline: string;
+  cards: LayoutCardConfig[];
+  updatedAt: string;
+  updatedBy: string;
+}
+
+// ---------------------------------------------------------------------
+// 4. RISK WARNING NOTIFICATION MODAL
+// ---------------------------------------------------------------------
+export interface RiskWarningData {
+  title: string;
+  description: string;
+  riskNotice: string;
+  severity: 'low' | 'medium' | 'high';
+  confirmLabel: string;
+  cancelLabel?: string;
+  action: () => void | Promise<void>;
+}
+
+// ---------------------------------------------------------------------
+// 5. CLINICAL ANALYSIS & RECOMMENDATION MODELS
+// ---------------------------------------------------------------------
+export interface ClinicalRecommendationNote {
+  id: string;
+  childUid?: string; // empty string for general global recommendation
+  childName?: string;
+  authorEmail: string;
+  authorName: string;
+  authorRole: 'dokter_gigi' | 'terapis_gigi' | 'super_admin';
+  category: 'pencegahan_karies' | 'kebugaran_gusi' | 'pola_makan' | 'teknik_sikat' | 'skrining_klinis';
+  note: string;
+  actionStep: string;
+  riskLevel: 'Rendah' | 'Sedang' | 'Tinggi';
+  createdAt: string;
+}
+
+export interface DentalAnalyticsSummary {
+  totalRegisteredUsers: number;
+  totalChildrenProfiles: number;
+  totalParentsProfiles: number;
+  totalQuizzesTaken: number;
+  averageHygieneScore: number;
+  adherenceStats: {
+    morningBrushingRate: number; // percentage (0-100)
+    nightBrushingRate: number; // percentage (0-100)
+    bothDailyRate: number; // percentage (0-100)
+  };
+  cariesRiskDistribution: {
+    low: number; // percentage
+    medium: number;
+    high: number;
+  };
+  mostCommonErrors: {
+    topic: string;
+    mistakeCount: number;
+    explanation: string;
+  }[];
+  expertRecommendations: string[];
+}
+

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChildProfile, ParentSettings, DailyPlayTracker } from '../types';
+import React, { useState, useEffect } from 'react';
+import { ChildProfile, ParentSettings, DailyPlayTracker, ClinicalRecommendationNote } from '../types';
 import {
   syncUploadToCloud,
   syncDownloadFromCloud,
@@ -9,6 +9,7 @@ import {
   saveParentSettings,
 } from '../utils/syncManager';
 import { soundEffects } from '../utils/audio';
+import { db, collection, getDocs } from '../lib/firebase';
 
 interface ParentDashboardProps {
   profile: ChildProfile;
@@ -35,7 +36,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [pinError, setPinError] = useState(false);
 
   // Active dashboard tab
-  const [activeTab, setActiveTab] = useState<'progress' | 'screen_time' | 'reminders' | 'email_report' | 'sync'>('progress');
+  const [activeTab, setActiveTab] = useState<'progress' | 'analysis_recommendations' | 'reminders' | 'email_report' | 'sync'>('progress');
+
+  // Clinical recommendations from Firestore
+  const [expertNotes, setExpertNotes] = useState<ClinicalRecommendationNote[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState<boolean>(false);
 
   // Sync state
   const syncCode = getStoredSyncCode();
@@ -54,6 +59,25 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   // Math challenge for quick entry: e.g. 8 + 7 = 15
   const mathQuestion = { q: '8 + 7', a: 15 };
 
+  // Fetch clinical notes from Cloud Firestore
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        setLoadingNotes(true);
+        const snap = await getDocs(collection(db, 'clinical_notes'));
+        const list: ClinicalRecommendationNote[] = [];
+        snap.forEach(d => list.push(d.data() as ClinicalRecommendationNote));
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setExpertNotes(list);
+      } catch (e) {
+        console.warn('Parent notes fetch notice:', e);
+      } finally {
+        setLoadingNotes(false);
+      }
+    };
+    fetchNotes();
+  }, []);
+
   const handleUnlockPin = (e: React.FormEvent) => {
     e.preventDefault();
     if (pinInput.trim() === settings.pin || pinInput.trim() === String(mathQuestion.a)) {
@@ -64,13 +88,6 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       soundEffects.wrong();
       setPinError(true);
     }
-  };
-
-  const handleTimeLimitChange = (minutes: number) => {
-    soundEffects.tap();
-    const updated = { ...settings, dailyTimeLimitMinutes: minutes };
-    onUpdateSettings(updated);
-    saveParentSettings(updated);
   };
 
   const handleToggleReminder = () => {
@@ -284,7 +301,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         <div className="flex border-b border-[#C4DCAC] bg-[#EFF6E9] px-4 gap-1 overflow-x-auto">
           {[
             { id: 'progress', label: 'Kemajuan Belajar', icon: '📊' },
-            { id: 'screen_time', label: 'Batas Durasi', icon: '⏱️' },
+            { id: 'analysis_recommendations', label: 'Analisis & Rekomendasi Ahli', icon: '🩺' },
             { id: 'reminders', label: 'Pengingat Sikat', icon: '⏰' },
             { id: 'email_report', label: 'Laporan Email', icon: '📧' },
             { id: 'sync', label: 'Sinkronisasi Cloud', icon: '☁️' },
@@ -446,56 +463,148 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB 2: KENDALI DURASI LAYAR */}
-          {activeTab === 'screen_time' && (
+          {/* TAB 2: ANALISIS KESEHATAN GIGI & REKOMENDASI AHLI (REQUIREMENT #6 & #7) */}
+          {activeTab === 'analysis_recommendations' && (
             <div className="space-y-6">
               <div className="space-y-1">
-                <h3 className="font-black text-lg text-[#143D37] font-['Fredoka']">
-                  Batas Durasi Penggunaan Aplikasi Harian
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-lg text-[#143D37] font-['Fredoka']">
+                    Hasil Analisis Personal & Rekomendasi Dokter / Terapis Gigi
+                  </h3>
+                  <span className="text-[10px] bg-teal-100 text-teal-800 font-extrabold px-2.5 py-0.5 rounded-full uppercase">
+                    Metode Indeks Risiko Karies
+                  </span>
+                </div>
                 <p className="text-xs sm:text-sm text-[#143D37]/75 font-medium">
-                  Lindungi kesehatan mata dan atur waktu layar (screen time) anak. Saat batas waktu tercapai, aplikasi akan menampilkan layar istirahat.
+                  Laporan klinis berbasis hasil pengisian kuis, materi bertahap, dan rutinitas sikat gigi harian Ananda {profile.name}.
                 </p>
               </div>
 
-              {/* Screen time choices */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {[
-                  { mins: 15, label: '15 Menit', tag: 'Sesi Singkat' },
-                  { mins: 30, label: '30 Menit', tag: 'Dianjurkan (Ideal)' },
-                  { mins: 45, label: '45 Menit', tag: 'Sesi Sedang' },
-                  { mins: 60, label: '60 Menit', tag: '1 Jam Penuh' },
-                  { mins: 0, label: 'Tanpa Batas', tag: 'Bebas Akses' },
-                ].map(opt => (
-                  <button
-                    key={opt.mins}
-                    onClick={() => handleTimeLimitChange(opt.mins)}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
-                      settings.dailyTimeLimitMinutes === opt.mins
-                        ? 'border-[#21736A] bg-[#21736A] text-white shadow-md'
-                        : 'border-[#C4DCAC] bg-white hover:border-[#6ED5B6] text-[#143D37]'
-                    }`}
-                  >
-                    <div className="font-black text-lg font-['Fredoka']">
-                      {opt.label}
+              {/* Personal Assessment Card */}
+              {(() => {
+                const hygieneScore = Math.min(100, Math.max(35, 50 + (profile.brushingSessionsCompleted * 6) + (profile.correctAnswers * 3)));
+                const riskLevel = hygieneScore >= 78 ? 'Rendah' : hygieneScore >= 55 ? 'Sedang' : 'Tinggi';
+
+                return (
+                  <div className="p-5 rounded-3xl bg-gradient-to-br from-[#EFF6E9] via-[#FAFDF9] to-[#E2F8F1] border-2 border-[#6ED5B6] space-y-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#6ED5B6]/50">
+                      <div>
+                        <span className="text-xs font-bold text-gray-500 uppercase">Pasien Cilik:</span>
+                        <h4 className="text-lg font-black text-[#143D37] font-['Fredoka']">
+                          {profile.name} (Anak)
+                        </h4>
+                      </div>
+
+                      <div className="flex items-center gap-2.5">
+                        <div className="text-right">
+                          <span className="text-[10px] text-gray-500 font-bold block uppercase">Skor Kebersihan Gigi:</span>
+                          <span className="text-xl font-black text-emerald-700 font-['Fredoka']">{hygieneScore} / 100</span>
+                        </div>
+                        <div className={`px-3 py-1.5 rounded-2xl text-xs font-black uppercase tracking-wider ${
+                          riskLevel === 'Rendah'
+                            ? 'bg-emerald-500 text-white shadow-sm'
+                            : riskLevel === 'Sedang'
+                            ? 'bg-amber-400 text-amber-950 shadow-sm'
+                            : 'bg-rose-600 text-white shadow-sm'
+                        }`}>
+                          Risiko Karies: {riskLevel}
+                        </div>
+                      </div>
                     </div>
-                    <div className={`text-xs mt-1 ${settings.dailyTimeLimitMinutes === opt.mins ? 'text-[#E2F8F1]' : 'text-[#143D37]/60'}`}>
-                      {opt.tag}
+
+                    {/* Breakdown metrics */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div className="p-3 rounded-2xl bg-white border border-[#C4DCAC]">
+                        <span className="text-gray-500 block font-bold">Sesi Sikat Gigi Tuntas:</span>
+                        <span className="text-base font-black text-[#143D37] mt-0.5 block">
+                          {profile.brushingSessionsCompleted} Kali Sesi
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-2xl bg-white border border-[#C4DCAC]">
+                        <span className="text-gray-500 block font-bold">Kuis & Pemahaman Gigi:</span>
+                        <span className="text-base font-black text-emerald-700 mt-0.5 block">
+                          {profile.correctAnswers} Jawaban Benar ({profile.completedQuizzes} Kuis)
+                        </span>
+                      </div>
+                      <div className="p-3 rounded-2xl bg-white border border-[#C4DCAC]">
+                        <span className="text-gray-500 block font-bold">Topik Kesehatan Dikuasai:</span>
+                        <span className="text-base font-black text-indigo-700 mt-0.5 block">
+                          {profile.exploredDiseases.length} / 7 Topik Penyakit
+                        </span>
+                      </div>
                     </div>
-                  </button>
-                ))}
+                  </div>
+                );
+              })()}
+
+              {/* Published Doctor / Therapist Recommendations */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-black text-[#143D37] font-['Fredoka'] flex items-center gap-1.5">
+                    <span>🩺</span>
+                    <span>Rekomendasi Ahli dari Dokter Gigi & Terapis Gigi:</span>
+                  </h4>
+                  <span className="text-[10px] text-gray-500 font-bold">
+                    Disinkronkan dari Cloud Firebase
+                  </span>
+                </div>
+
+                {loadingNotes ? (
+                  <p className="text-xs text-gray-500 py-3 text-center">Memuat catatan rekomendasi dokter...</p>
+                ) : expertNotes.length === 0 ? (
+                  <div className="p-5 rounded-2xl bg-white border border-gray-200 text-xs text-gray-500 text-center">
+                    Belum ada rekomendasi khusus. Terus dampingi anak menyelesaikan modul belajar dan sikat gigi teratur!
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {expertNotes.map(item => (
+                      <div
+                        key={item.id}
+                        className="p-4 rounded-2xl bg-white border-2 border-teal-100 shadow-xs space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">
+                              {item.authorRole === 'dokter_gigi' ? '🩺' : '🌿'}
+                            </span>
+                            <span className="text-xs font-black text-gray-900">{item.authorName}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              item.authorRole === 'dokter_gigi' ? 'bg-blue-100 text-blue-800' : 'bg-teal-100 text-teal-800'
+                            }`}>
+                              {item.authorRole === 'dokter_gigi' ? 'Dokter Gigi' : 'Terapis Gigi'}
+                            </span>
+                          </div>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                            item.riskLevel === 'Tinggi' ? 'bg-red-100 text-red-800' : item.riskLevel === 'Sedang' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            Tingkat: {item.riskLevel}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-gray-800 font-semibold leading-relaxed">
+                          {item.note}
+                        </p>
+
+                        <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-xs font-bold text-teal-900 flex items-start gap-1.5">
+                          <span className="text-sm">🎯</span>
+                          <span><strong>Langkah Aksi di Rumah:</strong> {item.actionStep}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Audio Controls */}
               <div className="bg-[#EFF6E9] p-4 rounded-2xl border border-[#C4DCAC] space-y-3">
-                <h4 className="font-bold text-sm text-[#143D37]">Pengaturan Suara</h4>
+                <h4 className="font-bold text-sm text-[#143D37]">Pengaturan Narasi Suara</h4>
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-bold text-xs sm:text-sm text-[#143D37]">
                       Narasi Suara Otomatis (Text-to-Speech)
                     </div>
                     <div className="text-xs text-[#143D37]/70">
-                      Membacakan pertanyaan kuis dan materi untuk anak usia dini
+                      Membacakan pertanyaan kuis dan materi bertahap untuk anak usia dini
                     </div>
                   </div>
                   <input

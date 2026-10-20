@@ -1,0 +1,74 @@
+[
+  {
+    "id": "comm-1791854968444-539",
+    "authorName": "Dentika Test",
+    "authorRole": "anak",
+    "category": "umum",
+    "categoryLabel": "Tanya Bebas",
+    "title": "Pertanyaan Baru",
+    "content": "Halo apakah Firebase Firestore sudah aktif?",
+    "createdAt": "2026-10-13T01:29:28.444Z",
+    "likes": 0,
+    "replies": []
+  },
+  {
+    "id": "comm-3",
+    "authorName": "Kenzo (9 Tahun)",
+    "authorRole": "anak",
+    "category": "bau_mulut",
+    "categoryLabel": "Bau Mulut & Nafas Segar",
+    "title": "Bagaimana cara agar nafas selalu segar sepanjang hari?",
+    "content": "Halo Dokter, kadang kalau bangun tidur atau habis sekolah nafasku rasanya kurang segar. Apa rahasianya biar nafas selalu segar kayak wangi permen mint?",
+    "createdAt": "2026-10-12T18:55:45.373Z",
+    "likes": 15,
+    "aiAnswer": {
+      "text": "Halo Kenzo sang Penjaga Senyum! 🍃✨\n\nNafas kurang segar itu wajar sekali terjadi, terutama setelah tidur atau beraktivitas seharian! Penyebab utamanya adalah kuman yang bersembunyi di sela-sela gigi dan di **permukaan lidah** kita yang mengubah sisa makanan menjadi gas berbau asam.\n\n3 Rahasia Nafas Segar Dokter Denti:\n1. 👅 **Sikat lidahmu juga**: Setelah menyikat gigi, gunakan bulu sikat gigi secara lembut dari bagian belakang lidah ke depan untuk menyapu lapisan putih kuman.\n2. 💧 **Banyak minum air putih**: Air putih membilas kuman dan membuat mulutmu selalu basah, kuman bau mulut tidak suka lingkungan yang banyak air!\n3. 🍎 **Kudapan buah renyah**: Makan apel atau wortel renyah membantu membersihkan gigi secara alami saat dikunyah.\n\nCobalah mulai hari ini dan rasakan sensasi nafas segarmu! 🚀🦷",
+      "answeredAt": "2026-10-12T18:56:45.373Z",
+      "model": "Dokter Denti AI (Gemini 3.8 Flash)"
+    },
+    "replies": []
+  },
+  {
+    "id": "comm-2",
+    "authorName": "Ibu Maya",
+    "authorRole": "orang_tua",
+    "category": "karies",
+    "categoryLabel": "Karies & Gigi Berlubang",
+    "title": "Waktu terbaik menyikat gigi anak agar terhindar dari kuman karies",
+    "content": "Dokter, anak saya sering minta sikat gigi saat mandi sore saja. Apakah itu cukup, atau harus tetap sikat gigi lagi sebelum tidur malam?",
+    "createdAt": "2026-10-12T06:55:45.373Z",
+    "likes": 8,
+    "aiAnswer": {
+      "text": "Halo Ibu Maya yang hebat! 🌸🦷\n\nMenyikat gigi saat mandi sore tentu baik, tetapi menyikat gigi **tepat sebelum tidur malam adalah kunci paling penting** yang tidak boleh dilewatkan sama sekali!\n\nMengapa? Saat kita tidur malam, mulut memproduksi sangat sedikit air liur (*saliva*). Padahal, air liur adalah tentara alami pembersih asam. Jika masih ada sisa makanan manis atau susu di malam hari, monster kuman karies (seperti *Streptococcus mutans*) akan berpesta semalaman selama 8 jam tanpa henti dan melubangi email gigi! 👾💥\n\nJadwal Emas Menyikat Gigi Dentika:\n1. ☀️ **Pagi hari**: 30 menit setelah sarapan pagi.\n2. 🌙 **Malam hari**: Tepat sebelum tidur, dan setelah sikat gigi malam hanya boleh minum air putih hangat/biasa.\n\nAyo dampingi si kecil dengan timer lagu 2 menit di aplikasi Dentika agar sikat gigi malam jadi petualangan seru! ⏰🎶",
+      "answeredAt": "2026-10-12T06:57:15.373Z",
+      "model": "Dokter Denti AI (Gemini 3.8 Flash)"
+    },
+    "replies": []
+  },
+  {
+    "id": "comm-1",
+    "authorName": "Rian (8 Tahun)",
+    "authorRole": "anak",
+    "category": "gigi_sensitif",
+    "categoryLabel": "Gigi Sensitif & Ngilu",
+    "title": "Kenapa gigiku ngilu pas makan es krim?",
+    "content": "Halo Dok, kenapa ya setiap kali aku makan es krim cokelat atau minum air es dingin, gigi depanku rasanya ngilu banget kayak kesetrum?",
+    "createdAt": "2026-10-11T00:55:45.372Z",
+    "likes": 12,
+    "aiAnswer": {
+      "text": "Halo Rian, Pahlawan Senyum Cilik! 🍦✨\n\nRasa ngilu saat makan es krim itu terjadi karena lapisan pelindung terluar gigimu (yang bernama email gigi) mulai menipis, atau gusimu sedikit turun. Akibatnya, saluran-saluran super kecil di dalam gigi yang disebut \"dentin\" langsung merasakan suhu dingin es krim dan mengirim sinyal kaget ke saraf gigi! ⚡\n\nTips dari Dokter Denti agar gigimu tidak gampang ngilu:\n1. 🪥 Gunakan sikat gigi dengan bulu yang super lembut (*soft bristles*) dan sikat pelan-pelan berputar, jangan digosok terlalu keras seperti menyikat lantai ya!\n2. 🥛 Gunakan pasta gigi khusus gigi sensitif berfluoride seukuran biji jagung.\n3. 🧊 Kurangi kebiasaan menggigit es batu secara langsung.\n\nKalau masih sering ngilu, ajak Ayah atau Ibu untuk periksa ke dokter gigi ya! Semangat menjaga gigimu tetap kuat! 🦷🌟",
+      "answeredAt": "2026-10-11T00:57:45.373Z",
+      "model": "Dokter Denti AI (Gemini 3.8 Flash)"
+    },
+    "replies": [
+      {
+        "id": "rep-1",
+        "authorName": "Bunda Rian",
+        "authorRole": "orang_tua",
+        "content": "Terima kasih Dokter Denti! Kemarin sudah saya belikan sikat gigi bulu halus, Rian sudah mulai rajin memutar sikatnya.",
+        "createdAt": "2026-10-12T00:55:45.373Z",
+        "likes": 4
+      }
+    ]
+  }
+]

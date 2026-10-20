@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ChildProfile } from '../types';
 import { MouthToothMascot } from './MouthToothMascot';
 import { soundEffects, speakText } from '../utils/audio';
 import {
@@ -15,22 +14,34 @@ import {
   Trophy3D,
   Apple3D,
 } from './GameIcons';
+import { ChildProfile, AppUserProfile, AppCustomizationConfig } from '../types';
+import { SUPER_ADMIN_EMAIL } from '../lib/firebase';
 
 interface ModeSelectorProps {
   profile: ChildProfile;
+  currentUser: AppUserProfile | null;
+  appConfig?: AppCustomizationConfig;
   speechEnabled: boolean;
   onSelectMode: (mode: string) => void;
   onOpenWardrobe: () => void;
   onOpenLeaderboard: () => void;
+  onOpenAdmin: () => void;
+  onOpenClinical: () => void;
 }
 
 export const ModeSelector: React.FC<ModeSelectorProps> = ({
   profile,
+  currentUser,
+  appConfig,
   speechEnabled,
   onSelectMode,
   onOpenWardrobe,
   onOpenLeaderboard,
+  onOpenAdmin,
+  onOpenClinical,
 }) => {
+  const isSuperAdmin = currentUser && (currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() || currentUser.primaryRole === 'super_admin');
+  const isClinicalStaff = currentUser && (isSuperAdmin || currentUser.primaryRole === 'dokter_gigi' || currentUser.primaryRole === 'terapis_gigi');
   // Helper to determine profession / role title matching Gambar 3
   const getCustomTitle = () => {
     if (profile.selectedProfession) {
@@ -74,6 +85,16 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
   const [slideIndex, setSlideIndex] = useState(0);
 
   const heroSlides = [
+    {
+      id: 'slide_sequential_level',
+      badge: `Level ${currentUser?.currentLevel || 1}: Naik Bertahap 🗺️`,
+      title: 'Petualangan Level Bertahap',
+      subtitle: 'Selesaikan Materi Berurutan & Buka Kuis Terkunci',
+      desc: 'Pelajari materi secara bertahap untuk membuka kunci kuis di setiap level. Anak wajib membaca materi secara berurutan agar pemahaman gigi optimal!',
+      actionLabel: 'Mulai Petualangan Level ➔',
+      modeTarget: 'sequential_levels',
+      isCustom: false,
+    },
     {
       id: 'custom_avatar',
       badge: `Tingkat ${tierInfo.tier}: ${tierInfo.name} ${tierInfo.stars}`,
@@ -513,114 +534,164 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            {
-              id: 'clinic',
-              title: 'Klinik Gigi & Ensiklopedia',
-              desc: 'Pelajari 7+ penyakit gigi & mulut, penyebab kuman, serta pencegahannya.',
-              icon: <ToothHealthy3D size={44} />,
-              tag: 'Edukasi Lengkap',
-              badge: `${profile.exploredDiseases.length}/7 Materi`,
-              bg: 'bg-[#EFF6E9] border-[#AEC892]',
-            },
-            {
-              id: 'quiz',
-              title: 'Kuis Bintang Dokter Cilik',
-              desc: 'Jawab kuis interaktif, raih koin emas dan bintang senyum berlimpah!',
-              icon: <Star3D size={44} />,
-              tag: 'Banjir Koin 🪙',
-              badge: `${profile.completedQuizzes} Kuis Selesai`,
-              bg: 'bg-[#FAF2E8] border-[#F5B842]',
-            },
-            {
-              id: 'germ_game',
-              title: 'Basmi Kuman Gigi!',
-              desc: 'Ketuk kuman karies dan plak sebelum merusak enamel gigimu!',
-              icon: <Bacteria3D size={44} />,
-              tag: 'Laga Refleks ⚡',
-              badge: `Rekor: ${profile.germBusterHighScore} Poin`,
-              bg: 'bg-[#FDF0E9] border-[#D97724]',
-            },
-            {
-              id: 'food_game',
-              title: 'Piring Sahabat Gigi',
-              desc: 'Pilah makanan sehat penguat gigi vs makanan manis perusak gigi!',
-              icon: <Apple3D size={44} />,
-              tag: 'Tantangan Nutrisi',
-              badge: 'Keluarga Makanan',
-              bg: 'bg-[#E2F8F1] border-[#6ED5B6]',
-            },
-            {
-              id: 'brushing',
-              title: 'Simulator Sikat Gigi 2 Menit',
-              desc: 'Panduan sikat gigi 4 kuadran dengan timer ceria dan suara ritmis.',
-              icon: <Toothbrush3D size={44} />,
-              tag: 'Kebiasaan Baik',
-              badge: `${profile.brushingSessionsCompleted}x Bersih`,
-              bg: 'bg-[#EFF6E9] border-[#6ED5B6]',
-            },
-            {
-              id: 'leaderboard',
-              title: 'Papan Peringkat Juara',
-              desc: 'Kompetisi sehat para pahlawan senyum cilik se-Nusantara!',
-              icon: <Trophy3D size={44} />,
-              tag: 'Peringkat Bintang',
-              badge: `${profile.score} Poin`,
-              bg: 'bg-[#FFFBE8] border-[#FACC15]',
-            },
-            {
-              id: 'forum',
-              title: 'Kolom Komentar & Tanya AI',
-              desc: 'Tanya jawab terbuka untuk semua orang, berdiskusi & dijawab langsung oleh Dokter Denti AI!',
-              icon: <span className="text-4xl">💬</span>,
-              tag: 'Akses Semua Orang 🌐',
-              badge: 'Gemini AI 🤖',
-              bg: 'bg-[#E0F2FE] border-[#38BDF8]',
-            },
-          ].map(game => (
-            <div
-              key={game.id}
-              onClick={() => {
-                soundEffects.tap();
-                if (game.id === 'leaderboard') {
-                  onOpenLeaderboard();
-                } else {
-                  onSelectMode(game.id);
-                }
-              }}
-              className={`p-5 rounded-3xl border-2 transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer ${game.bg} flex flex-col justify-between gap-3`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="p-2 bg-white rounded-2xl shadow-xs border border-black/5">
-                    {game.icon}
+          {(() => {
+            const defaultGames = [
+              {
+                id: 'sequential_levels',
+                title: 'Petualangan Level Bertahap',
+                desc: 'Level 1 sampai 5 berurutan. Kuis terkunci hingga semua materi selesai dibaca!',
+                icon: <span className="text-4xl">🗺️</span>,
+                tag: 'Level Gamifikasi 🏆',
+                badge: `Level ${currentUser?.currentLevel || 1}`,
+                bg: 'bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-400',
+              },
+              {
+                id: 'clinic',
+                title: 'Klinik Gigi & Ensiklopedia',
+                desc: 'Pelajari 7+ penyakit gigi & mulut, penyebab kuman, serta pencegahannya.',
+                icon: <ToothHealthy3D size={44} />,
+                tag: 'Edukasi Lengkap',
+                badge: `${profile.exploredDiseases.length}/7 Materi`,
+                bg: 'bg-[#EFF6E9] border-[#AEC892]',
+              },
+              {
+                id: 'quiz',
+                title: 'Kuis Bintang Dokter Cilik',
+                desc: 'Jawab kuis interaktif, raih koin emas dan bintang senyum berlimpah!',
+                icon: <Star3D size={44} />,
+                tag: 'Banjir Koin 🪙',
+                badge: `${profile.completedQuizzes} Kuis Selesai`,
+                bg: 'bg-[#FAF2E8] border-[#F5B842]',
+              },
+              {
+                id: 'germ_game',
+                title: 'Basmi Kuman Gigi!',
+                desc: 'Ketuk kuman karies dan plak sebelum merusak enamel gigimu!',
+                icon: <Bacteria3D size={44} />,
+                tag: 'Laga Refleks ⚡',
+                badge: `Rekor: ${profile.germBusterHighScore} Poin`,
+                bg: 'bg-[#FDF0E9] border-[#D97724]',
+              },
+              {
+                id: 'food_game',
+                title: 'Piring Sahabat Gigi',
+                desc: 'Pilah makanan sehat penguat gigi vs makanan manis perusak gigi!',
+                icon: <Apple3D size={44} />,
+                tag: 'Tantangan Nutrisi',
+                badge: 'Keluarga Makanan',
+                bg: 'bg-[#E2F8F1] border-[#6ED5B6]',
+              },
+              {
+                id: 'brushing',
+                title: 'Simulator Sikat Gigi 2 Menit',
+                desc: 'Panduan sikat gigi 4 kuadran dengan timer ceria dan suara ritmis.',
+                icon: <Toothbrush3D size={44} />,
+                tag: 'Kebiasaan Baik',
+                badge: `${profile.brushingSessionsCompleted}x Bersih`,
+                bg: 'bg-[#EFF6E9] border-[#6ED5B6]',
+              },
+              {
+                id: 'forum',
+                title: 'Kolom Komentar & Tanya AI',
+                desc: 'Tanya jawab terbuka untuk semua orang, berdiskusi & dijawab langsung oleh Dokter Denti AI!',
+                icon: <span className="text-4xl">💬</span>,
+                tag: 'Akses Semua Orang 🌐',
+                badge: 'Gemini AI 🤖',
+                bg: 'bg-[#E0F2FE] border-[#38BDF8]',
+              },
+              {
+                id: 'clinical_analysis',
+                title: 'Dasbor Analisis Klinis',
+                desc: 'Evaluasi indeks risiko karies seluruh anak dan rekomendasi klinis para ahli.',
+                icon: <span className="text-4xl">📊</span>,
+                tag: 'Panel Ahli 🩺',
+                badge: isClinicalStaff ? 'Akses Aktif ✓' : 'Akses Staf',
+                bg: 'bg-[#EEF2FF] border-[#6366F1]',
+              },
+              {
+                id: 'leaderboard',
+                title: 'Papan Peringkat Juara',
+                desc: 'Kompetisi sehat para pahlawan senyum cilik se-Nusantara!',
+                icon: <Trophy3D size={44} />,
+                tag: 'Peringkat Bintang',
+                badge: `${profile.score} Poin`,
+                bg: 'bg-[#FFFBE8] border-[#FACC15]',
+              },
+            ];
+
+            // If customized order exists from Super Admin
+            let renderedList = defaultGames;
+            if (appConfig && appConfig.cards && appConfig.cards.length > 0) {
+              const orderMap = new Map(appConfig.cards.map((c, idx) => [c.id, { order: c.order || idx + 1, visible: c.visible, icon: c.icon }]));
+              renderedList = defaultGames
+                .filter(g => {
+                  const cfg = orderMap.get(g.id);
+                  return cfg ? cfg.visible !== false : true;
+                })
+                .sort((a, b) => {
+                  const orderA = orderMap.get(a.id)?.order ?? 99;
+                  const orderB = orderMap.get(b.id)?.order ?? 99;
+                  return orderA - orderB;
+                });
+            }
+
+            return renderedList.map(game => {
+              const customIconVal = appConfig?.cards?.find(c => c.id === game.id)?.icon;
+
+              return (
+                <div
+                  key={game.id}
+                  onClick={() => {
+                    soundEffects.tap();
+                    if (game.id === 'leaderboard') {
+                      onOpenLeaderboard();
+                    } else if (game.id === 'clinical_analysis') {
+                      onOpenClinical();
+                    } else {
+                      onSelectMode(game.id);
+                    }
+                  }}
+                  className={`p-5 rounded-3xl border-2 transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer ${game.bg} flex flex-col justify-between gap-3`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="p-2 bg-white rounded-2xl shadow-xs border border-black/5 flex items-center justify-center min-w-[56px] min-h-[56px]">
+                        {customIconVal && customIconVal.startsWith('http') ? (
+                          <img src={customIconVal} alt="Icon" className="w-10 h-10 object-contain" />
+                        ) : customIconVal ? (
+                          <span className="text-3xl">{customIconVal}</span>
+                        ) : (
+                          game.icon
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-black uppercase bg-white px-2.5 py-0.5 rounded-full border border-black/10 text-[#143D37] block">
+                          {game.tag}
+                        </span>
+                        <span className="text-xs font-black text-[#21736A] mt-1 block">
+                          {game.badge}
+                        </span>
+                      </div>
+                    </div>
+
+                    <h3 className="font-black text-lg text-[#143D37] font-['Fredoka']">
+                      {game.title}
+                    </h3>
+                    <p className="text-xs text-[#143D37]/75 font-semibold mt-1 leading-snug">
+                      {game.desc}
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-black uppercase bg-white px-2.5 py-0.5 rounded-full border border-black/10 text-[#143D37] block">
-                      {game.tag}
+
+                  <div className="flex items-center justify-between pt-2 border-t border-black/5">
+                    <span className="text-xs font-black text-[#21736A] flex items-center gap-1">
+                      Buka Sekarang →
                     </span>
-                    <span className="text-xs font-black text-[#21736A] mt-1 block">
-                      {game.badge}
-                    </span>
+                    <span className="text-base">✨</span>
                   </div>
                 </div>
-
-                <h3 className="font-black text-lg text-[#143D37] font-['Fredoka']">
-                  {game.title}
-                </h3>
-                <p className="text-xs text-[#143D37]/75 font-semibold mt-1 leading-snug">
-                  {game.desc}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-black/5">
-                <span className="text-xs font-black text-[#21736A] flex items-center gap-1">
-                  Mainkan Sekarang →
-                </span>
-                <span className="text-base">✨</span>
-              </div>
-            </div>
-          ))}
+              );
+            });
+          })()}
         </div>
       </div>
     </div>

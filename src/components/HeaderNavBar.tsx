@@ -1,16 +1,21 @@
 import React from 'react';
-import { ChildProfile, ParentSettings } from '../types';
+import { ChildProfile, ParentSettings, AppUserProfile } from '../types';
 import { soundEffects } from '../utils/audio';
 import { MouthToothMascot } from './MouthToothMascot';
 import { Heart3D, Coin3D, Gem3D, Star3D, SettingsButton3D } from './GameIcons';
+import { SUPER_ADMIN_EMAIL } from '../lib/firebase';
 
 interface HeaderProps {
   profile: ChildProfile;
   settings: ParentSettings;
+  currentUser: AppUserProfile | null;
   isOnline: boolean;
   onOpenParent: () => void;
   onOpenWardrobe: () => void;
   onOpenLeaderboard: () => void;
+  onOpenAuth: () => void;
+  onOpenAdmin: () => void;
+  onOpenClinical: () => void;
   onToggleSpeech: () => void;
   onNavigateHome: () => void;
   onSelectMode: (mode: string) => void;
@@ -20,15 +25,22 @@ interface HeaderProps {
 export const HeaderNavBar: React.FC<HeaderProps> = ({
   profile,
   settings,
+  currentUser,
   isOnline,
   onOpenParent,
   onOpenWardrobe,
   onOpenLeaderboard,
+  onOpenAuth,
+  onOpenAdmin,
+  onOpenClinical,
   onToggleSpeech,
   onNavigateHome,
   onSelectMode,
   currentMode,
 }) => {
+  const isSuperAdmin = currentUser && (currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() || currentUser.primaryRole === 'super_admin');
+  const isClinicalStaff = currentUser && (isSuperAdmin || currentUser.primaryRole === 'dokter_gigi' || currentUser.primaryRole === 'terapis_gigi');
+
   return (
     <header className="sticky top-0 z-40 bg-[#FAFDF9]/95 backdrop-blur-md border-b-2 border-[#C4DCAC] px-3 py-2 shadow-sm">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
@@ -87,6 +99,7 @@ export const HeaderNavBar: React.FC<HeaderProps> = ({
         <nav className="hidden lg:flex items-center gap-1 bg-[#EFF6E9] p-1 rounded-2xl border border-[#C4DCAC]">
           {[
             { id: 'home', label: 'Beranda', icon: '🏠' },
+            { id: 'sequential_levels', label: 'Level Bertahap', icon: '🗺️' },
             { id: 'clinic', label: 'Klinik Gigi', icon: '🦷' },
             { id: 'quiz', label: 'Kuis Bintang', icon: '❓' },
             { id: 'germ_game', label: 'Basmi Kuman', icon: '👾' },
@@ -139,17 +152,6 @@ export const HeaderNavBar: React.FC<HeaderProps> = ({
             </span>
           </div>
 
-          {/* Diamonds Gems */}
-          <div
-            className="hidden sm:flex items-center gap-1 bg-[#E0F2FE] border border-[#38BDF8] px-2 py-1 rounded-2xl shadow-xs"
-            title="Permata Kristal"
-          >
-            <Gem3D size={20} />
-            <span className="font-black text-[#0369A1] text-xs">
-              {profile.gems || 10}
-            </span>
-          </div>
-
           {/* Stars */}
           <div
             className="flex items-center gap-1 bg-[#FFFBE8] border border-[#FACC15] px-2 py-1 rounded-2xl shadow-xs"
@@ -177,33 +179,62 @@ export const HeaderNavBar: React.FC<HeaderProps> = ({
             <span className="text-sm">{settings.speechAudioEnabled ? '🔊' : '🔇'}</span>
           </button>
 
-          {/* Forum Komentar Button */}
-          <button
-            onClick={() => {
-              soundEffects.tap();
-              onSelectMode('forum');
-            }}
-            className={`p-1.5 rounded-2xl border text-sm cursor-pointer transition-transform active:scale-95 ${
-              currentMode === 'forum'
-                ? 'bg-[#21736A] text-white border-[#21736A] shadow-xs'
-                : 'bg-[#EFF6E9] hover:bg-[#E2F8F1] border-[#C4DCAC] text-[#143D37]'
-            }`}
-            title="Kolom Komentar & Tanya AI"
-          >
-            💬
-          </button>
+          {/* Super Admin Direct Button */}
+          {isSuperAdmin && (
+            <button
+              onClick={() => {
+                soundEffects.tap();
+                onOpenAdmin();
+              }}
+              className="p-1.5 px-2.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-black shadow-xs flex items-center gap-1 transition-transform active:scale-95 cursor-pointer"
+              title="Panel Kontrol Super Admin"
+            >
+              <span>👑</span>
+              <span className="hidden md:inline">Admin</span>
+            </button>
+          )}
 
-          {/* Leaderboard Button */}
-          <button
-            onClick={() => {
-              soundEffects.tap();
-              onOpenLeaderboard();
-            }}
-            className="p-1.5 rounded-2xl bg-[#EFF6E9] hover:bg-[#E2F8F1] border border-[#C4DCAC] text-sm cursor-pointer"
-            title="Papan Peringkat Bintang"
-          >
-            🏆
-          </button>
+          {/* Clinical Staff Button (Dokter Gigi & Terapis Gigi) */}
+          {isClinicalStaff && (
+            <button
+              onClick={() => {
+                soundEffects.tap();
+                onOpenClinical();
+              }}
+              className="p-1.5 px-2.5 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-black shadow-xs flex items-center gap-1 transition-transform active:scale-95 cursor-pointer"
+              title="Dashboard Analisis Klinis"
+            >
+              <span>🩺</span>
+              <span className="hidden md:inline">Analisis</span>
+            </button>
+          )}
+
+          {/* User Auth / Gmail Button (Requirement #1) */}
+          {currentUser ? (
+            <button
+              onClick={() => {
+                soundEffects.tap();
+                onOpenAuth();
+              }}
+              className="px-2.5 py-1 rounded-2xl bg-gradient-to-r from-[#21736A] to-[#143D37] text-white text-xs font-black flex items-center gap-1.5 shadow-xs hover:opacity-95 cursor-pointer"
+              title={`Akun: ${currentUser.email} (${currentUser.activeRole})`}
+            >
+              <span>{currentUser.activeRole === 'super_admin' ? '👑' : currentUser.activeRole === 'dokter_gigi' ? '🩺' : currentUser.activeRole === 'terapis_gigi' ? '🌿' : currentUser.activeRole === 'orang_tua' ? '👨‍👩‍👧' : '🧒'}</span>
+              <span className="hidden sm:inline-block max-w-[90px] truncate">{currentUser.displayName.split(' ')[0]}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                soundEffects.tap();
+                onOpenAuth();
+              }}
+              className="px-2.5 py-1 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black flex items-center gap-1 shadow-xs transition-transform active:scale-95 cursor-pointer"
+              title="Masuk / Daftar Akun Gmail"
+            >
+              <span>🔐</span>
+              <span className="hidden sm:inline-block">Masuk Gmail</span>
+            </button>
+          )}
 
           {/* Parent Mode Lock */}
           <button

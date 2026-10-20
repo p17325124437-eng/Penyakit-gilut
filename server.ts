@@ -4,6 +4,17 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  Firestore,
+} from 'firebase/firestore';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -161,9 +172,36 @@ async function startServer() {
   // Persistence files
   const SYNC_FILE = path.join(__dirname, 'sync_data.json');
   const COMMENTS_FILE = path.join(__dirname, 'comments_data.json');
+  const FIREBASE_CONFIG_FILE = path.join(__dirname, 'firebase-applet-config.json');
 
   let syncStore: Record<string, { data: any; updatedAt: string }> = {};
   let commentsStore: CommentItem[] = [];
+
+  // Cloud Firebase Firestore Initialization
+  let firestoreDb: Firestore | null = null;
+  let firebaseStatus = {
+    connected: false,
+    projectId: '',
+    databaseId: '',
+    storageBucket: '',
+  };
+
+  try {
+    if (fs.existsSync(FIREBASE_CONFIG_FILE)) {
+      const fbConfig = JSON.parse(fs.readFileSync(FIREBASE_CONFIG_FILE, 'utf-8'));
+      const fbApp = getApps().length > 0 ? getApp() : initializeApp(fbConfig);
+      firestoreDb = getFirestore(fbApp, fbConfig.firestoreDatabaseId || '(default)');
+      firebaseStatus = {
+        connected: true,
+        projectId: fbConfig.projectId || '',
+        databaseId: fbConfig.firestoreDatabaseId || '(default)',
+        storageBucket: fbConfig.storageBucket || '',
+      };
+      console.log(`[Firebase Server] Connected to Cloud Firestore in project "${fbConfig.projectId}" (DB: ${fbConfig.firestoreDatabaseId})`);
+    }
+  } catch (err) {
+    console.warn('[Firebase Server] Notice on Firebase init:', err);
+  }
 
   // Seed Comments matching Gambar & Kurikulum Dentika
   const seedComments: CommentItem[] = [
@@ -274,18 +312,87 @@ async function startServer() {
     { id: '5', name: 'Zahra Putri Bersih', score: 1890, stars: 29, avatar: 'queen', level: 'Sahabat Dokter 👑' },
   ];
 
-  // API: Health check
+  // Seed / Sync Firestore Data on Boot
+  const initFirestoreSync = async () => {
+    if (!firestoreDb) return;
+    try {
+      // 1. Comments collection
+      const commCol = collection(firestoreDb, 'comments');
+      const snap = await getDocs(commCol);
+      if (snap.empty) {
+        console.log('[Firebase Server] Seeding initial comments to Cloud Firestore...');
+        for (const item of commentsStore) {
+          await setDoc(doc(firestoreDb, 'comments', item.id), item);
+        }
+      } else {
+        const cloudComments: CommentItem[] = [];
+        snap.forEach(docSnap => {
+          cloudComments.push(docSnap.data() as CommentItem);
+        });
+        cloudComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        commentsStore = cloudComments;
+        saveCommentsStore();
+        console.log(`[Firebase Server] Synced ${cloudComments.length} comments from Cloud Firestore`);
+      }
+
+      // 2. Leaderboard collection
+      const lbCol = collection(firestoreDb, 'leaderboard');
+      const lbSnap = await getDocs(lbCol);
+      if (lbSnap.empty) {
+        for (const entry of initialLeaderboard) {
+          await setDoc(doc(firestoreDb, 'leaderboard', entry.id), entry);
+        }
+      }
+    } catch (err) {
+      console.warn('[Firebase Server] Background Firestore sync notice:', err);
+    }
+  };
+
+  initFirestoreSync();
+
+  // API: Health check & Firebase connection status
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() });
+    res.json({
+      status: 'ok',
+      firebase: firebaseStatus,
+      time: new Date().toISOString(),
+    });
+  });
+
+  // API: Firebase Status
+  app.get('/api/firebase-status', (req, res) => {
+    res.json({
+      success: true,
+      ...firebaseStatus,
+      commentsCount: commentsStore.length,
+      syncProfilesCount: Object.keys(syncStore).length,
+    });
   });
 
   // ==========================================
   // FORUM KOMENTAR & AI DOKTER GIGI ENDPOINTS
   // ==========================================
 
-  // 1. GET /api/comments - Ambil semua komentar & jawaban
-  app.get('/api/comments', (req, res) => {
-    res.json({ success: true, comments: commentsStore });
+  // 1. GET /api/comments - Ambil semua komentar & jawaban dari Cloud Firebase
+  app.get('/api/comments', async (req, res) => {
+    if (firestoreDb) {
+      try {
+        const commCol = collection(firestoreDb, 'comments');
+        const snap = await getDocs(commCol);
+        if (!snap.empty) {
+          const cloudComments: CommentItem[] = [];
+          snap.forEach(docSnap => {
+            cloudComments.push(docSnap.data() as CommentItem);
+          });
+          cloudComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          commentsStore = cloudComments;
+          saveCommentsStore();
+        }
+      } catch (err) {
+        console.warn('[Firebase Server] Error fetching comments from Firestore, serving cache:', err);
+      }
+    }
+    res.json({ success: true, comments: commentsStore, cloudSynced: Boolean(firestoreDb) });
   });
 
   // 2. POST /api/comments - Buat komentar / pertanyaan baru
@@ -319,10 +426,19 @@ async function startServer() {
         );
       }
 
+      // Persist to Cloud Firestore
+      if (firestoreDb) {
+        try {
+          await setDoc(doc(firestoreDb, 'comments', newComment.id), newComment);
+        } catch (dbErr) {
+          console.warn('[Firebase Server] Warning writing comment to Firestore:', dbErr);
+        }
+      }
+
       commentsStore.unshift(newComment);
       saveCommentsStore();
 
-      res.status(201).json({ success: true, comment: newComment });
+      res.status(201).json({ success: true, comment: newComment, cloudSynced: Boolean(firestoreDb) });
     } catch (err: any) {
       console.error('Error creating comment:', err);
       res.status(500).json({ error: 'Gagal membuat komentar: ' + (err?.message || 'Server error') });
@@ -330,7 +446,7 @@ async function startServer() {
   });
 
   // 3. POST /api/comments/:id/reply - Balas komentar
-  app.post('/api/comments/:id/reply', (req, res) => {
+  app.post('/api/comments/:id/reply', async (req, res) => {
     try {
       const { id } = req.params;
       const { authorName, authorRole, content } = req.body;
@@ -356,7 +472,16 @@ async function startServer() {
       comment.replies.push(newReply);
       saveCommentsStore();
 
-      res.status(201).json({ success: true, reply: newReply, comment });
+      // Update in Cloud Firestore
+      if (firestoreDb) {
+        try {
+          await updateDoc(doc(firestoreDb, 'comments', id), { replies: comment.replies });
+        } catch (dbErr) {
+          console.warn('[Firebase Server] Warning updating replies in Firestore:', dbErr);
+        }
+      }
+
+      res.status(201).json({ success: true, reply: newReply, comment, cloudSynced: Boolean(firestoreDb) });
     } catch (err: any) {
       console.error('Error adding reply:', err);
       res.status(500).json({ error: 'Gagal membalas: ' + (err?.message || 'Server error') });
@@ -364,7 +489,7 @@ async function startServer() {
   });
 
   // 4. POST /api/comments/:id/like - Suka komentar
-  app.post('/api/comments/:id/like', (req, res) => {
+  app.post('/api/comments/:id/like', async (req, res) => {
     try {
       const { id } = req.params;
       const comment = commentsStore.find(c => c.id === id);
@@ -375,7 +500,15 @@ async function startServer() {
       comment.likes = (comment.likes || 0) + 1;
       saveCommentsStore();
 
-      res.json({ success: true, likes: comment.likes });
+      if (firestoreDb) {
+        try {
+          await updateDoc(doc(firestoreDb, 'comments', id), { likes: comment.likes });
+        } catch (dbErr) {
+          console.warn('[Firebase Server] Warning updating likes in Firestore:', dbErr);
+        }
+      }
+
+      res.json({ success: true, likes: comment.likes, cloudSynced: Boolean(firestoreDb) });
     } catch (err: any) {
       console.error('Error liking comment:', err);
       res.status(500).json({ error: 'Gagal menyukai komentar.' });
@@ -395,7 +528,15 @@ async function startServer() {
       comment.aiAnswer = aiAnswer;
       saveCommentsStore();
 
-      res.json({ success: true, aiAnswer, comment });
+      if (firestoreDb) {
+        try {
+          await updateDoc(doc(firestoreDb, 'comments', id), { aiAnswer });
+        } catch (dbErr) {
+          console.warn('[Firebase Server] Warning updating aiAnswer in Firestore:', dbErr);
+        }
+      }
+
+      res.json({ success: true, aiAnswer, comment, cloudSynced: Boolean(firestoreDb) });
     } catch (err: any) {
       console.error('Error asking AI for comment:', err);
       res.status(500).json({ error: 'Gagal meminta jawaban AI: ' + (err?.message || 'Server error') });
@@ -422,18 +563,48 @@ async function startServer() {
   // SYNC & LEADERBOARD ENDPOINTS
   // ==========================================
 
-  // API: Sync Save
-  app.post('/api/sync/save', (req, res) => {
+  // API: Sync Save ke Cloud Firebase Firestore
+  app.post('/api/sync/save', async (req, res) => {
     const { syncCode, progressData } = req.body;
     if (!syncCode || !progressData) {
       return res.status(400).json({ error: 'Kode sinkronisasi dan data profil wajib diisi.' });
     }
     const cleanCode = String(syncCode).trim().toUpperCase();
+    const nowIso = new Date().toISOString();
+
     syncStore[cleanCode] = {
       data: progressData,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowIso,
     };
     saveSyncStore();
+
+    // Save to Cloud Firebase
+    if (firestoreDb) {
+      try {
+        await setDoc(doc(firestoreDb, 'sync_profiles', cleanCode), {
+          syncCode: cleanCode,
+          playerName: progressData.playerName || 'Pahlawan Dentika',
+          score: progressData.score || 0,
+          stars: progressData.stars || 0,
+          progressData,
+          updatedAt: nowIso,
+        });
+
+        if (progressData.playerName && progressData.score !== undefined) {
+          await setDoc(doc(firestoreDb, 'leaderboard', cleanCode), {
+            id: cleanCode,
+            name: progressData.playerName,
+            score: progressData.score || 0,
+            stars: progressData.stars || 0,
+            avatar: progressData.avatar || 'hero',
+            level: progressData.rankTitle || 'Pahlawan Senyum',
+            updatedAt: nowIso,
+          });
+        }
+      } catch (dbErr) {
+        console.warn('[Firebase Server] Error saving to sync_profiles in Firestore:', dbErr);
+      }
+    }
 
     if (progressData.playerName && progressData.score !== undefined) {
       const idx = initialLeaderboard.findIndex(p => p.id === cleanCode || p.name === progressData.playerName);
@@ -456,18 +627,39 @@ async function startServer() {
     res.json({
       success: true,
       syncCode: cleanCode,
-      message: 'Data berhasil disinkronkan ke server cloud!',
-      updatedAt: syncStore[cleanCode].updatedAt,
+      message: 'Data berhasil disinkronkan ke Cloud Firebase Firestore!',
+      updatedAt: nowIso,
+      cloudSynced: Boolean(firestoreDb),
     });
   });
 
-  // API: Sync Load
-  app.get('/api/sync/load/:code', (req, res) => {
+  // API: Sync Load dari Cloud Firebase Firestore
+  app.get('/api/sync/load/:code', async (req, res) => {
     const cleanCode = String(req.params.code).trim().toUpperCase();
+
+    // Check Cloud Firebase Firestore first
+    if (firestoreDb) {
+      try {
+        const snap = await getDoc(doc(firestoreDb, 'sync_profiles', cleanCode));
+        if (snap.exists()) {
+          const profileDoc = snap.data();
+          return res.json({
+            success: true,
+            syncCode: cleanCode,
+            progressData: profileDoc.progressData,
+            updatedAt: profileDoc.updatedAt,
+            source: 'cloud_firebase_firestore',
+          });
+        }
+      } catch (err) {
+        console.warn('[Firebase Server] Error reading sync_profiles from Firestore, trying cache:', err);
+      }
+    }
+
     const record = syncStore[cleanCode];
     if (!record) {
       return res.status(404).json({
-        error: `Kode sinkronisasi "${cleanCode}" tidak ditemukan di server. Pastikan kode sudah benar atau buat kode baru di perangkat utama.`,
+        error: `Kode sinkronisasi "${cleanCode}" tidak ditemukan di server atau Cloud Firebase. Pastikan kode sudah benar atau buat kode baru di perangkat utama.`,
       });
     }
     res.json({
@@ -475,12 +667,27 @@ async function startServer() {
       syncCode: cleanCode,
       progressData: record.data,
       updatedAt: record.updatedAt,
+      source: 'local_cache',
     });
   });
 
-  // API: Leaderboard
-  app.get('/api/leaderboard', (req, res) => {
-    res.json({ leaderboard: initialLeaderboard.slice(0, 10) });
+  // API: Leaderboard dari Cloud Firebase
+  app.get('/api/leaderboard', async (req, res) => {
+    if (firestoreDb) {
+      try {
+        const lbCol = collection(firestoreDb, 'leaderboard');
+        const snap = await getDocs(lbCol);
+        if (!snap.empty) {
+          const cloudLb: any[] = [];
+          snap.forEach(d => cloudLb.push(d.data()));
+          cloudLb.sort((a, b) => (b.score || 0) - (a.score || 0));
+          return res.json({ leaderboard: cloudLb.slice(0, 10), source: 'cloud_firebase' });
+        }
+      } catch (err) {
+        console.warn('[Firebase Server] Error fetching leaderboard from Firestore:', err);
+      }
+    }
+    res.json({ leaderboard: initialLeaderboard.slice(0, 10), source: 'local' });
   });
 
   // API: Email Weekly Report

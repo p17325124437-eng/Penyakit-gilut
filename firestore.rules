@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.\\@]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Public comments forum accessible by all users
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isValidId(commentId);
+      allow update: if isValidId(commentId);
+      allow delete: if false;
+    }
+
+    // Player cloud synchronization & backup profiles
+    match /sync_profiles/{syncCode} {
+      allow read: if isValidId(syncCode);
+      allow create, update: if isValidId(syncCode);
+      allow delete: if false;
+    }
+
+    // Global smiling champions leaderboard
+    match /leaderboard/{entryId} {
+      allow read: if true;
+      allow create, update: if isValidId(entryId);
+      allow delete: if false;
+    }
+
+    // Registered user profiles with role, age, gender, progress
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(userId);
+    }
+
+    // Staff accounts: Super Admin, Dokter Gigi, Terapis Gigi
+    match /staff_roles/{emailDoc} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(emailDoc);
+    }
+
+    // Curriculum levels & sequential learning modules
+    match /curriculum_levels/{levelId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(levelId);
+    }
+
+    // App layout, custom icons, theme colors customization
+    match /app_customization/{configId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(configId);
+    }
+
+    // Clinical assessments & dental recommendations
+    match /clinical_notes/{noteId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(noteId);
+    }
+  }
+}
